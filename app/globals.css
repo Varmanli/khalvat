@@ -1,26 +1,235 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F7F1E8;
+  --foreground: #2B2520;
+
+  --card: #FFFDF8;
+  --card-soft: #EFE3D2;
+
+  --primary: #8A5A44;
+  --primary-dark: #5E3A2F;
+  --primary-soft: #D8B9A3;
+
+  --muted: #7A6A5A;
+  --border: #E2D4C3;
+
+  --olive: #7A8450;
+  --gold: #C49A5A;
+  --rose: #B76E79;
+
+  --danger: #B94A48;
+  --success: #6F8F5B;
+  --warning: #C58A3A;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-card: var(--card);
+  --color-card-soft: var(--card-soft);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-soft: var(--primary-soft);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-olive: var(--olive);
+  --color-gold: var(--gold);
+  --color-rose: var(--rose);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  direction: rtl;
+  min-height: 100vh;
+  font-family: var(--font-vazirmatn), Vazirmatn, Tahoma, Arial, sans-serif;
+}
+
+/* ── Persian ordered-list markers ──────────────────────────── */
+
+@counter-style persian-decimal {
+  system: numeric;
+  symbols: "۰" "۱" "۲" "۳" "۴" "۵" "۶" "۷" "۸" "۹";
+  suffix: ". ";
+}
+
+/* ── Rich Text Editor (Tiptap) ──────────────────────────────── */
+
+.rte-content {
+  direction: rtl;
+  text-align: right;
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 2;
+  min-height: inherit;
+}
+
+.rte-content p { margin: 0 0 0.6em; }
+.rte-content p:last-child { margin-bottom: 0; }
+
+.rte-content h2 {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--foreground);
+  margin: 1em 0 0.35em;
+}
+.rte-content h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0.9em 0 0.3em;
+}
+
+.rte-content strong { font-weight: 800; }
+.rte-content em { font-style: italic; }
+.rte-content u { text-decoration: underline; }
+.rte-content s { text-decoration: line-through; }
+
+.rte-content blockquote {
+  border-right: 3px solid var(--primary-soft);
+  margin: 0.75em 0;
+  padding: 0.6em 1em 0.6em 0.5em;
+  background: rgba(216,185,163,0.18);
+  border-radius: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.rte-content ul {
+  list-style-type: disc;
+  padding-right: 1.4em;
+  margin: 0.5em 0;
+}
+.rte-content ol {
+  list-style-type: persian-decimal;
+  padding-right: 1.5em;
+  margin: 0.5em 0;
+}
+.rte-content li { margin: 0.2em 0; }
+
+.rte-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+.rte-content code {
+  background: var(--card-soft);
+  border-radius: 0.4rem;
+  padding: 0.1em 0.4em;
+  font-size: 0.875em;
+  font-family: monospace;
+  color: var(--primary-dark);
+}
+
+.rte-content a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* Placeholder */
+.rte-content .rte-placeholder::before {
+  content: attr(data-placeholder);
+  float: right;
+  color: var(--muted);
+  opacity: 0.55;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Tiptap default placeholder uses p.is-editor-empty::before */
+.rte-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: right;
+  color: var(--muted);
+  opacity: 0.55;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Entry content display (detail page) */
+.entry-content {
+  direction: rtl;
+  text-align: right;
+  font-size: 0.9375rem;
+  line-height: 2;
+  color: var(--foreground);
+}
+.entry-content p { margin: 0 0 0.7em; }
+.entry-content p:last-child { margin-bottom: 0; }
+.entry-content h2 { font-size: 1.2rem; font-weight: 900; margin: 1em 0 0.35em; }
+.entry-content h3 { font-size: 1rem; font-weight: 800; margin: 0.9em 0 0.3em; }
+.entry-content strong { font-weight: 800; }
+.entry-content em { font-style: italic; }
+.entry-content u { text-decoration: underline; }
+.entry-content s { text-decoration: line-through; }
+.entry-content blockquote {
+  border-right: 3px solid var(--primary-soft);
+  margin: 0.75em 0;
+  padding: 0.6em 1em 0.6em 0.5em;
+  background: rgba(216,185,163,0.15);
+  border-radius: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
+}
+.entry-content ul { list-style-type: disc; padding-right: 1.4em; margin: 0.5em 0; }
+.entry-content ol { list-style-type: persian-decimal; padding-right: 1.5em; margin: 0.5em 0; }
+.entry-content li { margin: 0.2em 0; }
+.entry-content hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
+.entry-content code {
+  background: var(--card-soft);
+  border-radius: 0.4rem;
+  padding: 0.1em 0.4em;
+  font-size: 0.875em;
+  font-family: monospace;
+  color: var(--primary-dark);
+}
+.entry-content a { color: var(--primary); text-decoration: underline; }
+
+/* Sonner toast overrides */
+[data-sonner-toast][data-type="success"] {
+  background: #f2f8ec !important;
+  border-color: #b6d49a !important;
+  color: #3a5e22 !important;
+}
+[data-sonner-toast][data-type="error"] {
+  background: #fdf1f1 !important;
+  border-color: #e8b4b3 !important;
+  color: #7d2020 !important;
+}
+
+/* ── Force Persian ordered-list markers (overrides Tailwind preflight / UA defaults) ── */
+
+.rte-content ol,
+.entry-content ol,
+.ProseMirror ol,
+.tiptap ol {
+  list-style-type: persian-decimal !important;
+  direction: rtl;
+  padding-right: 1.75rem;
+  padding-left: 0;
+}
+
+.rte-content ol > li::marker,
+.entry-content ol > li::marker,
+.ProseMirror ol > li::marker,
+.tiptap ol > li::marker {
+  content: counter(list-item, persian-decimal) ". ";
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.rte-content ol ol,
+.entry-content ol ol,
+.ProseMirror ol ol,
+.tiptap ol ol {
+  list-style-type: persian-decimal !important;
 }

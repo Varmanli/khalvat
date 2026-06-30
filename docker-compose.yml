@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: khalvat_db
+    environment:
+      POSTGRES_DB: khalvat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # md5 avoids SCRAM-SHA-256 verifier cache issues with Docker Desktop on Windows.
+      # The password is stored and verified as md5 so both pg_hba.conf and
+      # the stored verifier use the same method.
+      POSTGRES_HOST_AUTH_METHOD: md5
+      POSTGRES_INITDB_ARGS: "--auth-host=md5 --auth-local=trust"
+    ports:
+      - "5432:5432"
+    volumes:
+      - khalvat_pg_data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c password_encryption=md5
+
+volumes:
+  khalvat_pg_data:
