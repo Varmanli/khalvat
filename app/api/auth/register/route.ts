@@ -55,7 +55,8 @@ export async function POST(request: Request) {
     cookieStore.set(cookie);
 
     return NextResponse.json({ ok: true, data: { user } }, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error("POST /api/auth/register failed:", err);
     return NextResponse.json(
       { ok: false, error: { message: "خطایی رخ داد. دوباره تلاش کن." } },
       { status: 500 }
