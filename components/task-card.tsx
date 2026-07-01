@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Calendar, Edit3, Folder, Sparkles } from "lucide-react";
+import { ArrowLeft, Calendar, Edit3, Folder } from "lucide-react";
 
 import { TaskPriorityBadge } from "@/components/task-priority-badge";
 import { TaskStatusBadge } from "@/components/task-status-badge";
