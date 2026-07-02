@@ -15,14 +15,16 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # khalvat has no NEXT_PUBLIC_* vars (APP_URL is server-only). DATABASE_URL is
-# read at build time by pages that import the DB client at module scope; set
-# it as a build variable too (it does not need to be a reachable/real
-# connection during build).
+# read at build time by pages that import the DB client at module scope, and
+# by db:migrate below — it must be a real, reachable connection string at
+# build time (Coolify's Docker build must be able to reach the database over
+# the network).
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 ENV NODE_ENV=production
 
 RUN npx tsc --noEmit
+RUN npm run db:migrate
 RUN npm run build
 
 # ---- runner: minimal production image --------------------------------------
@@ -43,5 +45,6 @@ EXPOSE 3004
 
 # Real secrets (DATABASE_URL, JWT_SECRET, GOOGLE_CLIENT_SECRET) must be
 # provided as runtime environment variables in Coolify — never baked into
-# this image. No database migration or seed command runs here.
+# this image. The schema is applied during the builder stage (above, via
+# db:migrate); no seed command runs here.
 CMD ["node", "server.js"]
