@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { upsertHabitLog, getUserHabitById, getHabitLogsForMonth } from "@/lib/habits";
+import { getJalaliParts } from "@/lib/date";
+import {
+  upsertHabitLog,
+  getUserHabitById,
+  getHabitLogsForJalaliMonth,
+  isHabitScheduledForDate,
+} from "@/lib/habits";
+import {
+  canLogHabitOnDate,
+  getTodayDateString,
+  parseDateString,
+} from "@/lib/habit-utils";
 import { habitLogSchema } from "@/lib/validations";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,10 +21,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const year = parseInt(searchParams.get("year") ?? String(new Date().getFullYear()), 10);
-    const month = parseInt(searchParams.get("month") ?? String(new Date().getMonth() + 1), 10);
+    const todayJalali = getJalaliParts(new Date());
+    const year = parseInt(searchParams.get("year") ?? String(todayJalali.jy), 10);
+    const month = parseInt(searchParams.get("month") ?? String(todayJalali.jm), 10);
 
-    const logs = await getHabitLogsForMonth(user.userId, id, year, month);
+    const logs = await getHabitLogsForJalaliMonth(user.userId, id, year, month);
     return NextResponse.json({ ok: true, data: logs });
   } catch {
     return NextResponse.json({ ok: false, error: { message: "خطایی رخ داد." } }, { status: 500 });
@@ -39,10 +51,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-    if (parsed.data.date > today) {
+    const today = getTodayDateString();
+    if (!canLogHabitOnDate(parsed.data.date, today)) {
       return NextResponse.json(
-        { ok: false, error: { message: "امکان ثبت عادت برای روزهای آینده وجود ندارد." } },
+        { ok: false, error: { message: "ثبت عادت فقط برای امروز، دیروز و دو روز قبل ممکن است." } },
+        { status: 400 }
+      );
+    }
+
+    if (!isHabitScheduledForDate(habit, parseDateString(parsed.data.date))) {
+      return NextResponse.json(
+        { ok: false, error: { message: "برای این روز برنامه‌ای برای این عادت ثبت نشده است." } },
         { status: 400 }
       );
     }

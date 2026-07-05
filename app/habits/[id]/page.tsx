@@ -27,8 +27,9 @@ import { DailyVerseCard } from "@/components/sidebar/daily-verse-card";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import { getJalaliParts } from "@/lib/date";
 import {
-  getHabitLogsForMonth,
+  getHabitLogsForJalaliMonth,
   getHabitStats,
   getTodayHabits,
   getUserHabitById,
@@ -44,8 +45,7 @@ export default async function HabitDetailPage({
   const { id } = await params;
 
   const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const { jy: year, jm: month } = getJalaliParts(now);
 
   const [userRows, habit, stats, monthLogs, todayHabits] = await Promise.all([
     db
@@ -55,7 +55,7 @@ export default async function HabitDetailPage({
       .limit(1),
     getUserHabitById(session.userId, id),
     getHabitStats(session.userId, id),
-    getHabitLogsForMonth(session.userId, id, year, month),
+    getHabitLogsForJalaliMonth(session.userId, id, year, month),
     getTodayHabits(session.userId),
   ]);
 

@@ -10,7 +10,30 @@ function getPersianWeekday(date: Date): number {
 }
 
 export function toDateString(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function parseDateString(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+export function shiftDateString(dateStr: string, days: number): string {
+  const date = parseDateString(dateStr);
+  date.setDate(date.getDate() + days);
+  return toDateString(date);
+}
+
+export function getTodayDateString(): string {
+  return toDateString(new Date());
+}
+
+export function canLogHabitOnDate(dateStr: string, todayStr = getTodayDateString()): boolean {
+  const oldestAllowed = shiftDateString(todayStr, -2);
+  return dateStr >= oldestAllowed && dateStr <= todayStr;
 }
 
 export function isHabitScheduledForDate(habit: Habit, date: Date): boolean {

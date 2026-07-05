@@ -61,6 +61,23 @@ export function jalaliToGregorianIso(jy: number, jm: number, jd: number): string
   return `${gy}-${String(gm).padStart(2, "0")}-${String(gd).padStart(2, "0")}`;
 }
 
+export function getJalaliDateKey(date: Date): string {
+  const { jy, jm, jd } = getJalaliParts(date);
+  return `${jy}-${String(jm).padStart(2, "0")}-${String(jd).padStart(2, "0")}`;
+}
+
+export function jalaliDateKeyToGregorianIso(dateKey: string): string {
+  const [jy, jm, jd] = dateKey.split("-").map(Number);
+  return jalaliToGregorianIso(jy, jm, jd);
+}
+
+export function shiftJalaliDateKey(dateKey: string, days: number): string {
+  const gregorianIso = jalaliDateKeyToGregorianIso(dateKey);
+  const date = parseGregorianIso(gregorianIso);
+  date.setDate(date.getDate() + days);
+  return getJalaliDateKey(date);
+}
+
 // ── Jalali month utilities ────────────────────────────────────────
 
 export function isJalaliLeap(jy: number): boolean {

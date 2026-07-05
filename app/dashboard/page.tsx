@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { EntryCard } from "@/components/entry-card";
 import { MoodBadge } from "@/components/mood-badge";
-import { VerseCard } from "@/components/verse-card";
+import { RandomVerseCard } from "@/components/poems/random-verse-card";
 import { DailyGuideCard } from "@/components/sidebar/daily-guide-card";
 import { DailyGratitudeCard } from "@/components/sidebar/daily-gratitude-card";
 import { DailyTasksCard } from "@/components/sidebar/daily-tasks-card";
@@ -13,7 +13,6 @@ import { requireUser } from "@/lib/auth";
 import type { EntryMood } from "@/lib/constants";
 import { formatPersianNumber } from "@/lib/date";
 import { getUserEntries } from "@/lib/entries";
-import { getDailyVerse, type DailyVerse } from "@/lib/ganjoor";
 import { getUserRecentTags } from "@/lib/tags";
 import { isPast } from "@/lib/utils";
 import { eq } from "drizzle-orm";
@@ -22,7 +21,6 @@ import {
   Bell,
   BookOpen,
   CheckSquare,
-  Clock3,
   Feather,
   FileText,
   Hash,
@@ -40,7 +38,7 @@ import Link from "next/link";
 export default async function DashboardPage() {
   const session = await requireUser();
 
-  const [userRows, allEntries, recentTags, dailyVerse] = await Promise.all([
+  const [userRows, allEntries, recentTags] = await Promise.all([
     db
       .select({
         name: users.name,
@@ -55,7 +53,6 @@ export default async function DashboardPage() {
       .limit(1),
     getUserEntries(session.userId),
     getUserRecentTags(session.userId, 8),
-    getDailyVerse(),
   ]);
 
   const user = userRows[0];
@@ -114,7 +111,7 @@ export default async function DashboardPage() {
         <div className="pointer-events-none absolute right-0 top-32 size-80 rounded-full bg-gold/10 blur-3xl" />
 
         <div className="relative space-y-6 lg:space-y-8">
-          <DeskHero userName={userName} dailyVerse={dailyVerse} />
+          <DeskHero userName={userName} />
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
@@ -246,13 +243,7 @@ export default async function DashboardPage() {
   );
 }
 
-function DeskHero({
-  userName,
-  dailyVerse,
-}: {
-  userName: string;
-  dailyVerse: DailyVerse;
-}) {
+function DeskHero({ userName }: { userName: string }) {
   return (
     <section className="relative overflow-hidden rounded-[2.25rem] border border-border bg-card shadow-[0_24px_90px_rgba(94,58,47,0.09)]">
       <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-card via-background to-primary-soft/25" />
@@ -276,8 +267,7 @@ function DeskHero({
               شلوغی ذهنت بیاد بیرون.
             </p>
 
-            <VerseCard
-              verse={dailyVerse}
+            <RandomVerseCard
               variant="inline"
               title="بیت امروز"
               className="mt-6 max-w-md"

@@ -48,8 +48,11 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     if (!user) return NextResponse.json({ ok: false, error: { message: "برای ادامه باید وارد حساب شوید." } }, { status: 401 });
 
     const { id } = await params;
+    const habit = await getUserHabitById(user.userId, id);
+    if (!habit) return NextResponse.json({ ok: false, error: { message: "عادت پیدا نشد." } }, { status: 404 });
+
     await archiveHabit(user.userId, id);
-    return NextResponse.json({ ok: true, data: { archived: true } });
+    return NextResponse.json({ ok: true, data: { deleted: true } });
   } catch {
     return NextResponse.json({ ok: false, error: { message: "خطایی رخ داد." } }, { status: 500 });
   }

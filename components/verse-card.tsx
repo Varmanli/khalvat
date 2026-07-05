@@ -1,10 +1,12 @@
 "use client";
 
-import type { DailyVerse } from "@/lib/ganjoor";
+import type { DailyVerse } from "@/lib/poem-types";
+import { getPoemPreview } from "@/lib/poem-preview";
 import { cn } from "@/lib/utils";
 import { BookOpen, Feather, Quote, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface VerseCardProps {
   verse: DailyVerse;
@@ -22,7 +24,8 @@ function formatVerseForCopy(verse: DailyVerse) {
 }
 
 function VerseLines({ text, className }: { text: string; className?: string }) {
-  const lines = text.split("\n").filter(Boolean);
+  const preview = getPoemPreview(text, 2);
+  const lines = preview.lines;
 
   return (
     <p className={cn("whitespace-pre-line", className)}>
@@ -39,9 +42,19 @@ function VerseAttribution({ verse }: { verse: DailyVerse }) {
   if (!verse.poet && !verse.source) return null;
 
   return (
-    <p className="mt-3 text-xs font-semibold leading-6 text-muted">
-      {[verse.poet, verse.source].filter(Boolean).join(" — ")}
-    </p>
+    <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold leading-6 text-muted">
+      <span>{[verse.poet, verse.source].filter(Boolean).join(" — ")}</span>
+      {verse.url ? (
+        <Link
+          href={verse.url}
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary transition-colors hover:text-primary-dark"
+        >
+          منبع
+        </Link>
+      ) : null}
+    </div>
   );
 }
 

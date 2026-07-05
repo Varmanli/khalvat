@@ -1,11 +1,13 @@
-export type DailyVerse = {
-  text: string;
-  poet?: string;
-  source?: string;
-  url?: string;
-};
+import type { DailyVerse } from "@/lib/poem-types";
 
-const FALLBACK_VERSES: DailyVerse[] = [
+export interface GanjoorFetchedPoem extends DailyVerse {
+  ganjoorPoemId?: number;
+  poetSlug?: string;
+  title?: string;
+  source?: string;
+}
+
+export const FALLBACK_VERSES: DailyVerse[] = [
   {
     text: "الا یا ایها الساقی ادر کأساً و ناولها\nکه عشق آسان نمود اول ولی افتاد مشکل‌ها",
     poet: "حافظ",
@@ -17,11 +19,6 @@ const FALLBACK_VERSES: DailyVerse[] = [
     source: "مثنوی معنوی",
   },
   {
-    text: "گر می فروشی را منع کنم ز می خوردن\nمن خود نمی‌خورم تو را چه کار من",
-    poet: "خیام",
-    source: "رباعیات خیام",
-  },
-  {
     text: "بنی‌آدم اعضای یک پیکرند\nکه در آفرینش ز یک گوهرند",
     poet: "سعدی",
     source: "گلستان",
@@ -31,53 +28,22 @@ const FALLBACK_VERSES: DailyVerse[] = [
     poet: "فردوسی",
     source: "شاهنامه",
   },
-  {
-    text: "هر که عاشق‌تر است بیمارتر\nوز همه بیمارتر بیمار عشق",
-    poet: "مولانا",
-    source: "دیوان شمس",
-  },
-  {
-    text: "بیا که قصر امل سخت سست بنیاد است\nبیار باده که بنیاد عمر بر باد است",
-    poet: "حافظ",
-    source: "دیوان حافظ",
-  },
-  {
-    text: "گل بی‌رخ یار خوش نباشد\nبی باده بهار خوش نباشد",
-    poet: "حافظ",
-    source: "دیوان حافظ",
-  },
-  {
-    text: "اگر مسلمانی این است که حافظ دارد\nآه اگر از پس امروز بود فردایی",
-    poet: "حافظ",
-    source: "دیوان حافظ",
-  },
-  {
-    text: "صبح خیزی و سلامت طلبی چون حافظ\nهر چه کردم همه از دولت قرآن کردم",
-    poet: "حافظ",
-    source: "دیوان حافظ",
-  },
-  {
-    text: "آدمی در عالم خاکی نمی‌آید به دست\nعالمی دیگر بباید ساخت و از نو آدمی",
-    poet: "اقبال لاهوری",
-    source: "ارمغان حجاز",
-  },
-  {
-    text: "سخن‌دانی و خوش‌خوانی نه این علم است و نه هنر\nحدیث از مطرب و می گو و راز دهر کمتر جو",
-    poet: "حافظ",
-    source: "دیوان حافظ",
-  },
 ];
 
-function stripHtml(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .trim();
+function compactWhitespace(value: string): string {
+  return value.replace(/\r/g, "").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function inferPoetName(fullTitle?: string | null): string | undefined {
+  if (!fullTitle) return undefined;
+  const [poet] = fullTitle.split("»").map((part) => part.trim()).filter(Boolean);
+  return poet || undefined;
+}
+
+function inferPoetSlug(fullUrl?: string | null): string | undefined {
+  if (!fullUrl) return undefined;
+  const parts = fullUrl.split("/").filter(Boolean);
+  return parts[0] || undefined;
 }
 
 export function getFallbackVerse(): DailyVerse {
@@ -85,77 +51,41 @@ export function getFallbackVerse(): DailyVerse {
   return FALLBACK_VERSES[idx];
 }
 
-async function fetchGanjoorPoem(
+export async function fetchGanjoorRandomPoem(
   signal?: AbortSignal,
-): Promise<DailyVerse | null> {
+  poetId = 0,
+): Promise<GanjoorFetchedPoem | null> {
   try {
-    const res = await fetch("https://api.ganjoor.net/api/v1/poems/random", {
-      signal,
-      next: { revalidate: 3600 },
-    });
+    const url = new URL("https://api.ganjoor.net/api/ganjoor/poem/random");
+    url.searchParams.set("poetId", String(poetId));
 
+    const res = await fetch(url, { signal, cache: "no-store" });
     if (!res.ok) return null;
 
     const data = await res.json();
+    const plainText = compactWhitespace(String(data?.plainText ?? ""));
+    if (!plainText) return null;
 
-    const verses: Array<{ text: string; versePosition: number }> =
-      data?.verses ?? [];
-
-    // Pick the first complete couplet: position 0 (right) + 1 (left)
-    const right = verses.find((v) => v.versePosition === 0);
-    const left = verses.find((v) => v.versePosition === 1);
-
-    const text =
-      right && left
-        ? `${stripHtml(right.text)}\n${stripHtml(left.text)}`
-        : right
-          ? stripHtml(right.text)
-          : verses[0]
-            ? stripHtml(verses[0].text)
-            : null;
-
-    if (!text) return null;
-
-    const poetName: string =
-      data?.category?.poet?.nickname ??
-      data?.category?.poet?.name ??
+    const poetName =
+      inferPoetName(data?.fullTitle) ??
+      data?.poetName ??
+      data?.authorName ??
       undefined;
 
-    const poemId: number | undefined = data?.id;
-    const url = poemId
-      ? `https://ganjoor.net${data?.urlSlug ?? ""}`
-      : undefined;
+    const fullUrl = data?.fullUrl ? `https://ganjoor.net${data.fullUrl}` : undefined;
+    const excerpt = plainText.split("\n").slice(0, 2).join("\n").trim() || plainText;
 
     return {
-      text,
-      poet: poetName || undefined,
-      source: data?.fullTitle ?? data?.title ?? undefined,
-      url: url || undefined,
+      ganjoorPoemId: typeof data?.id === "number" ? data.id : undefined,
+      poet: poetName,
+      poetSlug: inferPoetSlug(data?.fullUrl),
+      title: data?.title ?? undefined,
+      text: plainText,
+      excerpt,
+      source: data?.fullTitle ?? data?.sourceName ?? data?.title ?? undefined,
+      url: fullUrl,
     };
   } catch {
     return null;
-  }
-}
-
-export async function getRandomVerse(): Promise<DailyVerse> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
-  try {
-    const verse = await fetchGanjoorPoem(controller.signal);
-    return verse ?? getFallbackVerse();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-export async function getDailyVerse(): Promise<DailyVerse> {
-  // Uses Next.js route-level fetch cache (revalidate: 3600 inside fetchGanjoorPoem)
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 5000);
-  try {
-    const verse = await fetchGanjoorPoem(controller.signal);
-    return verse ?? getFallbackVerse();
-  } finally {
-    clearTimeout(timer);
   }
 }

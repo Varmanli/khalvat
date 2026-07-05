@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { DailyCheckInPrompt } from "@/components/check-ins/daily-check-in-prompt";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ export function AppShell({
       </main>
 
       <SiteFooter />
+      <DailyCheckInPrompt />
     </div>
   );
 }

@@ -4,12 +4,9 @@ import { and, desc, eq, gte, lte, or } from "drizzle-orm";
 import type { HabitInput, HabitLogInput, HabitCategoryInput } from "@/lib/validations";
 import type { Habit, HabitLog, HabitCategory } from "@/db/schema";
 import { isHabitScheduledForDate, toDateString } from "@/lib/habit-utils";
+import { daysInJalaliMonth, jalaliToGregorianIso } from "@/lib/date";
 
 export { isHabitScheduledForDate } from "@/lib/habit-utils";
-
-function todayString(): string {
-  return toDateString(new Date());
-}
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -78,7 +75,13 @@ export async function getUserHabitById(userId: string, habitId: string): Promise
   const rows = await db
     .select()
     .from(habits)
-    .where(and(eq(habits.id, habitId), eq(habits.userId, userId)))
+    .where(
+      and(
+        eq(habits.id, habitId),
+        eq(habits.userId, userId),
+        eq(habits.isActive, true)
+      )
+    )
     .limit(1);
 
   if (!rows[0]) return null;
@@ -126,6 +129,29 @@ export async function getHabitLogsForMonth(
   const start = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month, 0).getDate();
   const end = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  return db
+    .select()
+    .from(habitLogs)
+    .where(
+      and(
+        eq(habitLogs.userId, userId),
+        eq(habitLogs.habitId, habitId),
+        gte(habitLogs.date, start),
+        lte(habitLogs.date, end)
+      )
+    )
+    .orderBy(habitLogs.date);
+}
+
+export async function getHabitLogsForJalaliMonth(
+  userId: string,
+  habitId: string,
+  jy: number,
+  jm: number
+): Promise<HabitLog[]> {
+  const start = jalaliToGregorianIso(jy, jm, 1);
+  const end = jalaliToGregorianIso(jy, jm, daysInJalaliMonth(jy, jm));
 
   return db
     .select()
@@ -296,7 +322,9 @@ export async function archiveHabit(userId: string, habitId: string): Promise<voi
   await db
     .update(habits)
     .set({ archivedAt: new Date(), isActive: false, updatedAt: new Date() })
-    .where(and(eq(habits.id, habitId), eq(habits.userId, userId)));
+    .where(
+      and(eq(habits.id, habitId), eq(habits.userId, userId), eq(habits.isActive, true))
+    );
 }
 
 export async function upsertHabitLog(

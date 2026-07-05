@@ -217,6 +217,70 @@ export const gratitudeEntries = pgTable(
 export type GratitudeEntry = typeof gratitudeEntries.$inferSelect;
 export type NewGratitudeEntry = typeof gratitudeEntries.$inferInsert;
 
+// ── Daily Check-ins ──────────────────────────────────────────────
+
+export const dailyCheckInMoodEnum = pgEnum("daily_check_in_mood", [
+  "great",
+  "good",
+  "normal",
+  "hard",
+  "bad",
+  "tired",
+]);
+
+export const dailyCheckIns = pgTable(
+  "daily_check_ins",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dateKey: text("date_key").notNull(),
+    mood: dailyCheckInMoodEnum("mood").notNull(),
+    emoji: text("emoji").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("daily_check_ins_user_date_key_unique").on(table.userId, table.dateKey),
+    index("daily_check_ins_user_date_idx").on(table.userId, table.dateKey),
+  ]
+);
+
+export type DailyCheckIn = typeof dailyCheckIns.$inferSelect;
+export type NewDailyCheckIn = typeof dailyCheckIns.$inferInsert;
+
+// ── Poems ────────────────────────────────────────────────────────
+
+export const poems = pgTable(
+  "poems",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ganjoorPoemId: integer("ganjoor_poem_id"),
+    textHash: text("text_hash").notNull(),
+    poetName: text("poet_name").notNull(),
+    poetSlug: text("poet_slug"),
+    title: text("title"),
+    plainText: text("plain_text").notNull(),
+    excerpt: text("excerpt"),
+    sourceUrl: text("source_url"),
+    tags: jsonb("tags").$type<string[]>(),
+    mood: text("mood"),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("poems_ganjoor_poem_id_unique").on(table.ganjoorPoemId),
+    uniqueIndex("poems_text_hash_unique").on(table.textHash),
+    index("poems_active_idx").on(table.isActive),
+  ]
+);
+
+export type Poem = typeof poems.$inferSelect;
+export type NewPoem = typeof poems.$inferInsert;
+
 // ── Habits ────────────────────────────────────────────────────
 
 export const habitRepeatTypeEnum = pgEnum("habit_repeat_type", ["daily", "weekly"]);

@@ -1,8 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { EntryForm } from "@/components/entry-form";
-import { VerseCard } from "@/components/verse-card";
+import { RandomVerseCard } from "@/components/poems/random-verse-card";
 import { requireUser } from "@/lib/auth";
-import { getDailyVerse } from "@/lib/ganjoor";
 import { getUserEntryCategories } from "@/lib/entry-categories";
 import Link from "next/link";
 import { Bell, BookOpen, ChevronRight, Feather, Lightbulb, PenLine, Quote, Sparkles } from "lucide-react";
@@ -10,10 +9,7 @@ import { Bell, BookOpen, ChevronRight, Feather, Lightbulb, PenLine, Quote, Spark
 export default async function NewEntryPage() {
   const session = await requireUser();
 
-  const [verse, categories] = await Promise.all([
-    getDailyVerse(),
-    getUserEntryCategories(session.userId),
-  ]);
+  const categories = await getUserEntryCategories(session.userId);
 
   return (
     <AppShell>
@@ -60,8 +56,7 @@ export default async function NewEntryPage() {
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           {/* Sidebar */}
           <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
-            <VerseCard
-              verse={verse}
+            <RandomVerseCard
               variant="side"
               title="جرقه‌ای برای نوشتن"
               subtitle="یک بیت کوتاه برای شروع آرام‌تر."

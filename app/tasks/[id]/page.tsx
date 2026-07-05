@@ -16,6 +16,7 @@ import {
 import { eq } from "drizzle-orm";
 
 import { AppShell } from "@/components/app-shell";
+import { DeleteTaskButton } from "@/components/tasks/delete-task-button";
 import { TaskPriorityBadge } from "@/components/task-priority-badge";
 import { TaskStatusBadge } from "@/components/task-status-badge";
 import { TaskToggleButton } from "@/components/task-toggle-button";
@@ -103,13 +104,17 @@ export default async function TaskDetailPage({ params }: Params) {
                       </div>
                     </div>
 
-                    <Link
-                      href={`/tasks/${task.id}/edit`}
-                      className="inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-xs font-black text-white shadow-[0_14px_36px_rgba(138,90,68,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-dark"
-                    >
-                      <Edit2 className="size-4" />
-                      ویرایش وظیفه
-                    </Link>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/tasks/${task.id}/edit`}
+                        className="inline-flex w-fit items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-xs font-black text-white shadow-[0_14px_36px_rgba(138,90,68,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-dark"
+                      >
+                        <Edit2 className="size-4" />
+                        ویرایش وظیفه
+                      </Link>
+
+                      <DeleteTaskButton taskId={task.id} redirectTo="/tasks" />
+                    </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

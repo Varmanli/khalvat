@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, Calendar, Edit3, Folder } from "lucide-react";
 
+import { DeleteTaskButton } from "@/components/tasks/delete-task-button";
 import { TaskPriorityBadge } from "@/components/task-priority-badge";
 import { TaskStatusBadge } from "@/components/task-status-badge";
 import { TaskToggleButton } from "@/components/task-toggle-button";
@@ -76,6 +77,10 @@ export function TaskCard({ task }: TaskCardProps) {
               >
                 <Edit3 className="size-4" />
               </Link>
+
+              <div onClick={(event) => event.stopPropagation()}>
+                <DeleteTaskButton taskId={task.id} compact />
+              </div>
             </div>
 
             {descriptionExcerpt && (

@@ -118,6 +118,34 @@ export const gratitudeSchema = z.object({
 
 export type GratitudeInput = z.infer<typeof gratitudeSchema>;
 
+// ── Daily check-in schemas ──────────────────────────────────────
+
+const DAILY_CHECK_IN_EMOJI_BY_MOOD = {
+  great: "😄",
+  good: "🙂",
+  normal: "😐",
+  hard: "😔",
+  bad: "😡",
+  tired: "😴",
+} as const;
+
+export const dailyCheckInSchema = z.object({
+  dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ معتبر نیست"),
+  mood: z.enum(["great", "good", "normal", "hard", "bad", "tired"]),
+  emoji: z.string().min(1, "انتخاب حال الزامی است").max(8, "ایموجی معتبر نیست"),
+  note: z.string().max(1000, "یادداشت نباید بیشتر از ۱۰۰۰ کاراکتر باشد").optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (DAILY_CHECK_IN_EMOJI_BY_MOOD[data.mood] !== data.emoji) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["emoji"],
+      message: "ایموجی انتخاب‌شده با حال روز هماهنگ نیست.",
+    });
+  }
+});
+
+export type DailyCheckInInput = z.infer<typeof dailyCheckInSchema>;
+
 // ── Habit schemas ─────────────────────────────────────────────
 
 export const habitSchema = z

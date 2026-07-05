@@ -8,6 +8,20 @@
       "when": 1782827895662,
       "tag": "0000_jittery_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783271251697,
+      "tag": "0001_certain_typhoid_mary",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783272162400,
+      "tag": "0002_brainy_saracen",
+      "breakpoints": true
     }
   ]
 }

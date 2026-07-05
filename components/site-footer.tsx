@@ -8,6 +8,7 @@ const QUICK_LINKS = [
   { href: "/reminders", label: "یادآورها" },
   { href: "/tasks", label: "وظایف" },
   { href: "/gratitude", label: "شکرگزاری" },
+  { href: "/check-ins", label: "حال‌نگار" },
   { href: "/search", label: "جستجو" },
 ];
 
@@ -97,4 +98,3 @@ export function SiteFooter() {
     </footer>
   );
 }
-

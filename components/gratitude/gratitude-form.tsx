@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Heart, Leaf, Minus, Plus, Sparkles } from "lucide-react";
+import { DeleteGratitudeButton } from "@/components/gratitude/delete-gratitude-button";
 import { cn } from "@/lib/utils";
 import type { GratitudeEntry } from "@/db/schema";
 
@@ -96,6 +97,12 @@ export function GratitudeForm({ initialEntry, date, dateLabel }: GratitudeFormPr
           امروز بابت چه چیزی قدردانی؟
         </h2>
       </div>
+
+      {initialEntry ? (
+        <div className="flex justify-end">
+          <DeleteGratitudeButton date={date} />
+        </div>
+      ) : null}
 
       <div className="space-y-2.5">
         {items.map((item, i) => {

@@ -8,6 +8,7 @@ import {
   Bell,
   FileText,
   Heart,
+  Laugh,
   LayoutDashboard,
   ListTodo,
   LogOut,
@@ -26,7 +27,6 @@ import { UserAvatar } from "@/components/avatar/user-avatar";
 interface SiteHeaderProps {
   userName?: string | null;
   userEmail?: string | null;
-  userImage?: string | null;
   userAvatarIcon?: string | null;
   userAvatarColor?: string | null;
   isAdmin?: boolean;
@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { href: "/reminders", label: "یادآورها", icon: Bell },
   { href: "/tasks", label: "وظایف", icon: ListTodo, matchPrefix: true },
   { href: "/gratitude", label: "شکرگزاری", icon: Heart, matchPrefix: true },
+  { href: "/check-ins", label: "حال‌نگار", icon: Laugh, matchPrefix: true },
   { href: "/habits", label: "عادت‌ها", icon: Repeat2, matchPrefix: true },
 ];
 
@@ -382,7 +383,6 @@ function MobileUserCard({
 export function SiteHeader({
   userName,
   userEmail,
-  userImage: _userImage,
   userAvatarIcon,
   userAvatarColor,
   isAdmin,

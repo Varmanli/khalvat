@@ -2,6 +2,7 @@ import { AppShell } from "@/components/app-shell";
 import { GratitudeCalendar } from "@/components/gratitude/gratitude-calendar";
 import { GratitudeForm } from "@/components/gratitude/gratitude-form";
 import { GratitudeStatsCard } from "@/components/gratitude/gratitude-stats";
+import { RandomVerseCard } from "@/components/poems/random-verse-card";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
@@ -14,8 +15,6 @@ import {
   getUserGratitudeByDate,
   getUserGratitudeForJalaliMonth,
 } from "@/lib/gratitude";
-import { getDailyVerse, type DailyVerse } from "@/lib/ganjoor";
-import { VerseCard } from "@/components/verse-card";
 import { eq } from "drizzle-orm";
 import {
   ArrowLeft,
@@ -51,7 +50,7 @@ export default async function GratitudePage({ searchParams }: PageProps) {
   const { jy: selectedJalaliYear, jm: selectedJalaliMonth } =
     getJalaliParts(selectedDate);
 
-  const [userRows, entry, monthEntries, recent, stats, dailyVerse] =
+  const [userRows, entry, monthEntries, recent, stats] =
     await Promise.all([
       db
         .select({ name: users.name })
@@ -66,7 +65,6 @@ export default async function GratitudePage({ searchParams }: PageProps) {
       ),
       getRecentGratitudeEntries(session.userId, 6),
       getGratitudeStats(session.userId),
-      getDailyVerse(),
     ]);
 
   const userName = userRows[0]?.name ?? "";
@@ -84,7 +82,7 @@ export default async function GratitudePage({ searchParams }: PageProps) {
         <div className="pointer-events-none absolute left-0 top-40 size-80 rounded-full bg-primary-soft/20 blur-3xl" />
 
         <div className="relative space-y-6 lg:space-y-8">
-          <GratitudeHero userName={userName} dailyVerse={dailyVerse} />
+          <GratitudeHero userName={userName} />
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
             {/* Main column */}
@@ -222,13 +220,7 @@ export default async function GratitudePage({ searchParams }: PageProps) {
   );
 }
 
-function GratitudeHero({
-  userName,
-  dailyVerse,
-}: {
-  userName: string;
-  dailyVerse: DailyVerse;
-}) {
+function GratitudeHero({ userName }: { userName: string }) {
   return (
     <section className="relative overflow-hidden rounded-[2.35rem] border border-border bg-card shadow-[0_26px_100px_rgba(94,58,47,0.1)]">
       <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-card via-background to-gold/12" />
@@ -259,8 +251,7 @@ function GratitudeHero({
               چند چیز کوچک را که امروز برایشان قدردانی، آرام نگه دار.
             </p>
 
-            <VerseCard
-              verse={dailyVerse}
+            <RandomVerseCard
               variant="inline"
               title="بیتی برای قدردانی"
               className="mt-6 max-w-md"
