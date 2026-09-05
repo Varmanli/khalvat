@@ -34,7 +34,7 @@ export function SiteFooter() {
           <div className="flex flex-col gap-3">
             <Link href="/dashboard" className="inline-flex w-fit transition-transform hover:-translate-y-0.5">
               <Image
-                src="/Logo.png"
+                src="/logo.png"
                 alt="لوگوی خلوت"
                 width={190}
                 height={58}

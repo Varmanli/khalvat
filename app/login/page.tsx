@@ -94,7 +94,7 @@ export default function LoginPage() {
             {/* Brand */}
             <Link href="/" className="mb-10 inline-flex">
               <Image
-                src="/Logo.png"
+                src="/logo.png"
                 alt="خلوت"
                 width={320}
                 height={110}
