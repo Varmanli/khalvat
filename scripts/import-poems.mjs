@@ -150,6 +150,24 @@ async function main() {
     parseInt(process.argv[3] ?? String(targetUniqueCount * 20), 10),
   );
 
+  const beforeStats = await getStats();
+  const existingUniqueCount = beforeStats.activePoems;
+  const targetNewCount = Math.max(0, targetUniqueCount - existingUniqueCount);
+
+  if (targetNewCount === 0) {
+    console.log(
+      JSON.stringify({
+        targetUniqueCount,
+        existingUniqueCount,
+        targetNewCount: 0,
+        imported: 0,
+        message: "Poem pool already meets the target.",
+      }, null, 2),
+    );
+    await sql.end();
+    return;
+  }
+
   const pool = await buildPoemIdPool();
   if (pool.poemIds.length === 0) {
     throw new Error("No Ganjoor poem IDs could be discovered for import.");
@@ -162,7 +180,7 @@ async function main() {
   let cursor = 0;
 
   while (
-    successfulInserts < targetUniqueCount &&
+    successfulInserts < targetNewCount &&
     attempts < maxAttempts &&
     pool.poemIds.length > 0
   ) {
@@ -209,7 +227,7 @@ async function main() {
     if (inserted.length > 0) {
       successfulInserts++;
       console.log(
-        `Imported ${successfulInserts}/${targetUniqueCount}: ${poem.poetName}${poem.title ? ` — ${poem.title}` : ""}`,
+        `Imported ${existingUniqueCount + successfulInserts}/${targetUniqueCount}: ${poem.poetName}${poem.title ? ` — ${poem.title}` : ""}`,
       );
     } else {
       duplicateSkips++;
@@ -221,6 +239,8 @@ async function main() {
     JSON.stringify(
       {
         targetUniqueCount,
+        existingUniqueCount,
+        targetNewCount,
         maxAttempts,
         sourcePoetCount: pool.poetIds.length,
         sourcePoemIdPoolSize: pool.poemIds.length,
@@ -235,9 +255,9 @@ async function main() {
     ),
   );
 
-  if (successfulInserts < targetUniqueCount) {
+  if (existingUniqueCount + successfulInserts < targetUniqueCount) {
     console.warn(
-      `Target not fully reached. Imported ${successfulInserts} unique poems out of requested ${targetUniqueCount}.`,
+      `Target not fully reached. Database has ${existingUniqueCount + successfulInserts} active poems out of requested ${targetUniqueCount}.`,
     );
   }
 

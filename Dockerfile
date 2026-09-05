@@ -25,6 +25,9 @@ ENV NODE_ENV=production
 
 RUN npx tsc --noEmit
 RUN npm run db:migrate
+# Populate the production database with a useful poem pool. The importer is
+# idempotent: once the target count exists, subsequent deploys add nothing.
+RUN node scripts/import-poems.mjs 50 1000
 RUN npm run build
 
 # ---- runner: minimal production image --------------------------------------
