@@ -36,6 +36,7 @@ export function PublicHeader() {
               <span className="absolute -inset-2 rounded-3xl bg-primary-soft/20 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
               <Image
                 src={khalvatLogo}
+                unoptimized
                 alt="لوگوی خلوت"
                 width={180}
                 height={48}

@@ -465,6 +465,7 @@ function FinalCtaSection() {
           <div className="rounded-[1.75rem] border border-border bg-background p-3 shadow-[0_18px_54px_rgba(94,58,47,0.1)]">
             <Image
               src={khalvatLogo}
+              unoptimized
               alt="لوگوی خلوت"
               width={64}
               height={64}
@@ -715,6 +716,7 @@ function SiteFooter() {
         <div className="flex items-center gap-3">
           <Image
             src={khalvatLogo}
+            unoptimized
             alt="لوگوی خلوت"
             width={36}
             height={36}

@@ -36,6 +36,7 @@ export function SiteFooter() {
             <Link href="/dashboard" className="inline-flex w-fit transition-transform hover:-translate-y-0.5">
               <Image
                 src={khalvatLogo}
+                unoptimized
                 alt="لوگوی خلوت"
                 width={190}
                 height={58}

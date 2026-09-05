@@ -155,6 +155,7 @@ export function SiteHeader({
         >
           <Image
             src={khalvatLogo}
+            unoptimized
             alt="خلوت"
             width={360}
             height={120}
@@ -257,6 +258,7 @@ export function SiteHeader({
           <Link href="/today" className="flex items-center">
             <Image
               src={khalvatLogo}
+              unoptimized
               alt="خلوت"
               width={140}
               height={48}
@@ -283,6 +285,7 @@ export function SiteHeader({
               <Link href="/today" onClick={() => setOpen(false)}>
                 <Image
                   src={khalvatLogo}
+                  unoptimized
                   alt="خلوت"
                   width={140}
                   height={48}

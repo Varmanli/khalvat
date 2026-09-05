@@ -96,6 +96,7 @@ export default function LoginPage() {
             <Link href="/" className="mb-10 inline-flex">
               <Image
                 src={khalvatLogo}
+                unoptimized
                 alt="خلوت"
                 width={320}
                 height={110}

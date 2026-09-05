@@ -81,6 +81,7 @@ export default function RegisterPage() {
             <Link href="/" className="mb-9 inline-flex">
               <Image
                 src={khalvatLogo}
+                unoptimized
                 alt="خلوت"
                 width={320}
                 height={110}
