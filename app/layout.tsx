@@ -50,14 +50,12 @@ export const metadata: Metadata = {
   ],
   icons: {
     icon: [
-      { url: "/khalvat-favicon.png?v=3", sizes: "64x64", type: "image/png" },
-      { url: "/icons/khalvat-icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/khalvat-icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon.png?v=4", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/khalvat-favicon.png?v=3",
+    shortcut: "/icon.png?v=4",
     apple: [
       {
-        url: "/khalvat-apple-touch-icon.png",
+        url: "/apple-icon.png",
         sizes: "180x180",
         type: "image/png",
       },

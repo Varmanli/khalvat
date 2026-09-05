@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getJalaliParts } from "@/lib/date";
 import { formatPersianNumber } from "@/lib/persian-numbers";
+import { khalvatLogo } from "@/lib/branding";
 
 const QUICK_LINKS = [
   { href: "/dashboard", label: "داشبورد" },
@@ -34,7 +35,7 @@ export function SiteFooter() {
           <div className="flex flex-col gap-3">
             <Link href="/dashboard" className="inline-flex w-fit transition-transform hover:-translate-y-0.5">
               <Image
-                src="/khalvat-logo.png"
+                src={khalvatLogo}
                 alt="لوگوی خلوت"
                 width={190}
                 height={58}

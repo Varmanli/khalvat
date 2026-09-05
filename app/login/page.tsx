@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { khalvatLogo } from "@/lib/branding";
 
 import {
   ArrowLeft,
@@ -94,7 +95,7 @@ export default function LoginPage() {
             {/* Brand */}
             <Link href="/" className="mb-10 inline-flex">
               <Image
-                src="/khalvat-logo.png"
+                src={khalvatLogo}
                 alt="خلوت"
                 width={320}
                 height={110}

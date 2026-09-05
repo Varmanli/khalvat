@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { khalvatLogo } from "@/lib/branding";
 
 import {
   Bell,
@@ -153,7 +154,7 @@ export function SiteHeader({
           className="mb-5 mt-1 flex items-center justify-center py-2"
         >
           <Image
-            src="/khalvat-logo.png"
+            src={khalvatLogo}
             alt="خلوت"
             width={360}
             height={120}
@@ -255,7 +256,7 @@ export function SiteHeader({
 
           <Link href="/today" className="flex items-center">
             <Image
-              src="/khalvat-logo.png"
+              src={khalvatLogo}
               alt="خلوت"
               width={140}
               height={48}
@@ -281,7 +282,7 @@ export function SiteHeader({
             <div className="mb-4 flex items-center justify-between border-b border-border/50 pb-3">
               <Link href="/today" onClick={() => setOpen(false)}>
                 <Image
-                  src="/khalvat-logo.png"
+                  src={khalvatLogo}
                   alt="خلوت"
                   width={140}
                   height={48}

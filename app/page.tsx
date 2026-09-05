@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { khalvatLogo } from "@/lib/branding";
 
 const siteUrl = process.env.APP_URL || "http://localhost:3000";
 
@@ -463,7 +464,7 @@ function FinalCtaSection() {
         <div className="mb-6 flex justify-center">
           <div className="rounded-[1.75rem] border border-border bg-background p-3 shadow-[0_18px_54px_rgba(94,58,47,0.1)]">
             <Image
-              src="/khalvat-logo.png"
+              src={khalvatLogo}
               alt="لوگوی خلوت"
               width={64}
               height={64}
@@ -713,7 +714,7 @@ function SiteFooter() {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center sm:px-6 md:flex-row md:text-right lg:px-8">
         <div className="flex items-center gap-3">
           <Image
-            src="/khalvat-logo.png"
+            src={khalvatLogo}
             alt="لوگوی خلوت"
             width={36}
             height={36}

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { khalvatLogo } from "@/lib/branding";
 
 export function PublicHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -34,7 +35,7 @@ export function PublicHeader() {
             <span className="relative flex items-center">
               <span className="absolute -inset-2 rounded-3xl bg-primary-soft/20 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
               <Image
-                src="/khalvat-logo.png"
+                src={khalvatLogo}
                 alt="لوگوی خلوت"
                 width={180}
                 height={48}
