@@ -233,3 +233,9 @@ body {
 .tiptap ol ol {
   list-style-type: persian-decimal !important;
 }
+
+/* Lightweight daily completion indicator. */
+.planner-progress { appearance: none; border: 0; background: var(--card-soft); color: var(--primary); }
+.planner-progress::-webkit-progress-bar { background: var(--card-soft); }
+.planner-progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; }
+.planner-progress::-moz-progress-bar { background: var(--primary); border-radius: 999px; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Path, type UseFormRegister } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
@@ -9,6 +9,46 @@ import { updatePasswordSchema, type UpdatePasswordInput } from "@/lib/validation
 
 interface PasswordSettingsFormProps {
   hasPassword: boolean;
+}
+
+function PasswordField({
+  label,
+  name,
+  show,
+  toggle,
+  error,
+  register,
+}: {
+  label: string;
+  name: Path<UpdatePasswordInput>;
+  show: boolean;
+  toggle: () => void;
+  error?: string;
+  register: UseFormRegister<UpdatePasswordInput>;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-semibold text-foreground">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          {...register(name)}
+          type={show ? "text" : "password"}
+          dir="ltr"
+          className="h-11 w-full rounded-2xl border border-border bg-background/70 px-4 pl-11 text-sm font-medium text-foreground outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-4 focus:ring-primary-soft/30"
+        />
+        <button
+          type="button"
+          onClick={toggle}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+        >
+          {show ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
+      {error && <p className="mt-1 text-xs text-danger">{error}</p>}
+    </div>
+  );
 }
 
 export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps) {
@@ -56,44 +96,6 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
     }
   }
 
-  function PasswordField({
-    label,
-    name,
-    show,
-    toggle,
-    error,
-  }: {
-    label: string;
-    name: keyof UpdatePasswordInput;
-    show: boolean;
-    toggle: () => void;
-    error?: string;
-  }) {
-    return (
-      <div>
-        <label className="mb-1.5 block text-sm font-semibold text-foreground">
-          {label}
-        </label>
-        <div className="relative">
-          <input
-            {...register(name)}
-            type={show ? "text" : "password"}
-            dir="ltr"
-            className="h-11 w-full rounded-2xl border border-border bg-background/70 px-4 pl-11 text-sm font-medium text-foreground outline-none transition-all placeholder:text-muted focus:border-primary focus:ring-4 focus:ring-primary-soft/30"
-          />
-          <button
-            type="button"
-            onClick={toggle}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
-          >
-            {show ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        </div>
-        {error && <p className="mt-1 text-xs text-danger">{error}</p>}
-      </div>
-    );
-  }
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <PasswordField
@@ -102,6 +104,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
         show={showCurrent}
         toggle={() => setShowCurrent((v) => !v)}
         error={errors.currentPassword?.message}
+        register={register}
       />
       <PasswordField
         label="رمز عبور جدید"
@@ -109,6 +112,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
         show={showNew}
         toggle={() => setShowNew((v) => !v)}
         error={errors.newPassword?.message}
+        register={register}
       />
       <PasswordField
         label="تکرار رمز عبور جدید"
@@ -116,6 +120,7 @@ export function PasswordSettingsForm({ hasPassword }: PasswordSettingsFormProps)
         show={showConfirm}
         toggle={() => setShowConfirm((v) => !v)}
         error={errors.confirmPassword?.message}
+        register={register}
       />
 
       <button

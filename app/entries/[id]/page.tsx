@@ -69,7 +69,7 @@ export default async function EntryDetailPage({ params }: Props) {
                     {entry.isPinned && (
                       <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/25 bg-gold/10 px-3 py-1.5 text-xs font-black text-gold">
                         <Pin className="size-3.5" />
-                        پین‌شده
+                        سنجاق شده
                       </span>
                     )}
 
@@ -164,7 +164,7 @@ export default async function EntryDetailPage({ params }: Props) {
             </main>
 
             {/* Sidebar */}
-            <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
+            <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
               <section className="rounded-4xl border border-border bg-card p-4 shadow-[0_18px_70px_rgba(94,58,47,0.06)]">
                 <div className="mb-4 flex items-center gap-3">
                   <span className="flex size-10 items-center justify-center rounded-2xl bg-card-soft text-primary">
@@ -216,11 +216,11 @@ export default async function EntryDetailPage({ params }: Props) {
 
                   {entry.isPinned && (
                     <MetaRow
-                      label="پین"
+                      label="سنجاق"
                       value={
                         <span className="inline-flex items-center gap-1 rounded-full bg-gold/10 px-2.5 py-1 text-xs font-bold text-gold">
                           <Pin className="size-3.5" />
-                          پین‌شده
+                          سنجاق شده
                         </span>
                       }
                     />

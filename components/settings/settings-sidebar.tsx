@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AlertTriangle, Lock, SlidersHorizontal, User } from "lucide-react";
+import { AlertTriangle, Bell, Lock, SlidersHorizontal, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/avatar/user-avatar";
 
@@ -32,6 +32,7 @@ const NAV_ITEMS = [
     description: "تجربه روزانه خلوت",
     icon: SlidersHorizontal,
   },
+  { href: "/settings/notifications", label: "اعلان‌ها", description: "یادآورها و دستگاه‌ها", icon: Bell },
   {
     href: "/settings/danger",
     label: "منطقه خطر",

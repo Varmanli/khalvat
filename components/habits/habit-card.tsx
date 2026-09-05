@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { createElement } from "react";
 import {
   AlarmClock,
   Archive,
@@ -12,6 +13,7 @@ import {
 import { getHabitIcon } from "./habit-icons";
 import { formatPersianNumber } from "@/lib/persian-numbers";
 import type { HabitWithCategory } from "@/lib/habits";
+import { GoalContextLink } from "@/components/goals/goal-context-link";
 
 interface HabitCardProps {
   habit: HabitWithCategory;
@@ -71,7 +73,7 @@ export function HabitCard({ habit, doneToday }: HabitCardProps) {
           className="flex size-14 shrink-0 items-center justify-center rounded-3xl text-white shadow-[0_14px_35px_rgba(94,58,47,0.18)] transition-transform duration-200 group-hover:scale-105"
           style={{ backgroundColor: habit.color }}
         >
-          <Icon className="size-6" />
+          {createElement(Icon, { className: "size-6" })}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -112,6 +114,7 @@ export function HabitCard({ habit, doneToday }: HabitCardProps) {
           )}
 
           <div className="mt-4 flex flex-wrap gap-2">
+            {habit.goal && <GoalContextLink goal={habit.goal} />}
             {hasGoal && (
               <MetaPill
                 icon={<Target className="size-3.5" />}

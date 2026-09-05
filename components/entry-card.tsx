@@ -105,7 +105,7 @@ export function EntryCard({
               {isPinned && (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/25 bg-gold/10 px-3 py-1.5 text-[11px] font-black text-gold">
                   <Pin className="size-3.5" />
-                  پین‌شده
+                  سنجاق شده
                 </span>
               )}
 

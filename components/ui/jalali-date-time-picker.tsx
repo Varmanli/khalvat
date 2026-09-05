@@ -89,6 +89,8 @@ export function JalaliDateTimePicker({
   useEffect(() => {
     const init = initFromValue(value);
     if (init) {
+      // Keep the picker internals synchronized with controlled external values.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelJY(init.jy); setSelJM(init.jm); setSelJD(init.jd);
       setSelHour(init.hour); setSelMinute(init.minute);
       setViewJY(init.jy); setViewJM(init.jm);

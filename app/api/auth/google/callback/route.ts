@@ -128,7 +128,7 @@ export async function GET(request: Request) {
     const cookie = createAuthCookie(token);
     cookieStore.set(cookie);
 
-    return NextResponse.redirect(`${APP_URL}/dashboard`);
+    return NextResponse.redirect(`${APP_URL}/today`);
   } catch {
     return NextResponse.redirect(FAIL_REDIRECT);
   }

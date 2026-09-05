@@ -21,17 +21,25 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { getUserTaskCategories } from "@/lib/task-categories";
+import { getUserGoals } from "@/lib/goals";
 
-export default async function NewTaskPage() {
+import { validDateKey } from "@/lib/planner-dates";
+import { planningTimeSchema } from "@/lib/planner-validation";
+
+export default async function NewTaskPage({ searchParams }: { searchParams: Promise<{ date?: string; time?: string; goalId?: string }> }) {
+  const query = await searchParams;
+  const scheduledDate = query.date && validDateKey(query.date) ? query.date : null;
+  const scheduledTime = scheduledDate && planningTimeSchema.safeParse(query.time).success ? query.time : null;
   const session = await requireUser();
 
-  const [userRows, categories] = await Promise.all([
+  const [userRows, categories, goals] = await Promise.all([
     db
       .select({ name: users.name })
       .from(users)
       .where(eq(users.id, session.userId))
       .limit(1),
     getUserTaskCategories(session.userId),
+    getUserGoals(session.userId),
   ]);
 
   const userName = userRows[0]?.name ?? "";
@@ -87,7 +95,7 @@ export default async function NewTaskPage() {
                     </Link>
                   </div>
 
-                  <TaskForm categories={categories} />
+                  <TaskForm categories={categories} goals={goals} defaultValues={{ scheduledDate, scheduledTime, goalId: query.goalId ?? null }} />
                 </div>
               </section>
             </main>
@@ -234,4 +242,3 @@ function HeroPrompt({ text }: { text: string }) {
     </div>
   );
 }
-

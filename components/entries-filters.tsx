@@ -142,8 +142,8 @@ export function EntriesFilters({
       </div>
 
       {/* Selects row */}
-      <div className="relative z-30 flex flex-wrap items-start gap-2 overflow-visible">
-        <div className="relative z-40 min-w-[130px] flex-1">
+      <div className="relative z-30 grid grid-cols-2 items-start gap-2 overflow-visible sm:flex sm:flex-wrap">
+        <div className="relative z-40 min-w-0 flex-1 sm:min-w-[130px]">
           <CustomSelect
             value={type}
             onValueChange={setType}
@@ -151,7 +151,7 @@ export function EntriesFilters({
             placeholder="همه نوع‌ها"
           />
         </div>
-        <div className="relative z-40 min-w-[130px] flex-1">
+        <div className="relative z-40 min-w-0 flex-1 sm:min-w-[130px]">
           <CustomSelect
             value={mood}
             onValueChange={setMood}
@@ -159,7 +159,7 @@ export function EntriesFilters({
             placeholder="همه حال‌وهواها"
           />
         </div>
-        <div className="relative z-40 min-w-[130px] flex-1">
+        <div className="relative z-40 min-w-0 flex-1 sm:min-w-[130px]">
           <CustomSelect
             value={status}
             onValueChange={setStatus}
@@ -168,7 +168,7 @@ export function EntriesFilters({
           />
         </div>
         {categories.length > 0 && (
-          <div className="relative z-40 min-w-[130px] flex-1">
+          <div className="relative z-40 min-w-0 flex-1 sm:min-w-[130px]">
             <CustomSelect
               value={categoryId}
               onValueChange={setCategoryId}
@@ -181,7 +181,7 @@ export function EntriesFilters({
         <button
           type="button"
           onClick={applyFilters}
-          className="h-12 px-4 bg-primary text-white text-sm rounded-2xl hover:bg-primary-dark transition-colors duration-150 font-medium shrink-0"
+          className="col-span-1 h-12 px-4 bg-primary text-white text-sm rounded-2xl hover:bg-primary-dark transition-colors duration-150 font-medium shrink-0 sm:col-auto"
         >
           اعمال
         </button>
@@ -190,7 +190,7 @@ export function EntriesFilters({
           <button
             type="button"
             onClick={clearFilters}
-            className="flex items-center gap-1.5 h-12 px-3 text-sm text-muted hover:text-foreground hover:bg-card-soft rounded-2xl transition-colors duration-150 shrink-0"
+            className="col-span-1 flex items-center justify-center gap-1.5 h-12 px-3 text-sm text-muted hover:text-foreground hover:bg-card-soft rounded-2xl transition-colors duration-150 shrink-0 sm:col-auto"
           >
             <X size={14} />
             پاک‌کردن
@@ -200,4 +200,3 @@ export function EntriesFilters({
     </div>
   );
 }
-

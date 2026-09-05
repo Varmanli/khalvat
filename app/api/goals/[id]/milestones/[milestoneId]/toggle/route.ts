@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server"; import { getCurrentUser } from "@/lib/auth"; import { toggleMilestone } from "@/lib/goals";
+export async function POST(_: Request,{params}:{params:Promise<{id:string;milestoneId:string}>}) {const user=await getCurrentUser();const {id,milestoneId}=await params;if(!user)return NextResponse.json({ok:false},{status:401});const data=await toggleMilestone(user.userId,id,milestoneId);return data?NextResponse.json({ok:true,data}):NextResponse.json({ok:false},{status:404});}

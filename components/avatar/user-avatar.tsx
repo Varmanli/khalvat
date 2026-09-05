@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { cn } from "@/lib/utils";
 import { getUserAvatarColor, getUserAvatarIcon } from "@/lib/avatar-options";
 
@@ -68,11 +69,11 @@ export function UserAvatar({
         )}
       />
 
-      <Icon
-        size={sz.icon}
-        strokeWidth={2.25}
-        className="relative drop-shadow-[0_2px_8px_rgba(0,0,0,0.18)]"
-      />
+      {createElement(Icon, {
+        size: sz.icon,
+        strokeWidth: 2.25,
+        className: "relative drop-shadow-[0_2px_8px_rgba(0,0,0,0.18)]",
+      })}
     </span>
   );
 }

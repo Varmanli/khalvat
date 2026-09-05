@@ -55,7 +55,7 @@ export default async function NewEntryPage() {
         {/* Main Layout */}
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           {/* Sidebar */}
-          <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
+          <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
             <RandomVerseCard
               variant="side"
               title="جرقه‌ای برای نوشتن"

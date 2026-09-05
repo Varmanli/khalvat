@@ -1,3 +1,4 @@
+import { TaskValidationError } from "@/lib/tasks";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserTasks, createTask } from "@/lib/tasks";
@@ -21,7 +22,8 @@ export async function GET(request: Request) {
 
     const data = await getUserTasks(user.userId, filters);
     return NextResponse.json({ ok: true, data });
-  } catch {
+  } catch (error) {
+    if (error instanceof TaskValidationError) return NextResponse.json({ ok: false, error: { message: error.message } }, { status: 400 });
     return NextResponse.json({ ok: false, error: { message: "خطایی رخ داد." } }, { status: 500 });
   }
 }
@@ -37,7 +39,8 @@ export async function POST(request: Request) {
 
     const task = await createTask(user.userId, parsed.data);
     return NextResponse.json({ ok: true, data: task }, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (error instanceof TaskValidationError) return NextResponse.json({ ok: false, error: { message: error.message } }, { status: 400 });
     return NextResponse.json({ ok: false, error: { message: "خطایی رخ داد." } }, { status: 500 });
   }
 }

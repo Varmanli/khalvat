@@ -20,17 +20,20 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { getUserHabitCategories } from "@/lib/habits";
+import { getUserGoals } from "@/lib/goals";
 
-export default async function NewHabitPage() {
+export default async function NewHabitPage({ searchParams }: { searchParams: Promise<{ goalId?: string }> }) {
+  const query = await searchParams;
   const session = await requireUser();
 
-  const [userRows, categories] = await Promise.all([
+  const [userRows, categories, goals] = await Promise.all([
     db
       .select({ name: users.name })
       .from(users)
       .where(eq(users.id, session.userId))
       .limit(1),
     getUserHabitCategories(session.userId),
+    getUserGoals(session.userId),
   ]);
 
   const userName = userRows[0]?.name ?? "";
@@ -84,7 +87,7 @@ export default async function NewHabitPage() {
                     </Link>
                   </div>
 
-                  <HabitForm categories={categories} />
+                  <HabitForm categories={categories} goals={goals} initialGoalId={query.goalId ?? null} />
                 </div>
               </section>
             </main>

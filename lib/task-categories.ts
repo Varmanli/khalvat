@@ -12,7 +12,7 @@ function slugify(text: string): string {
 }
 
 async function uniqueSlug(userId: string, base: string): Promise<string> {
-  let slug = slugify(base) || "category";
+  const slug = slugify(base) || "category";
   const existing = await db
     .select({ slug: taskCategories.slug })
     .from(taskCategories)

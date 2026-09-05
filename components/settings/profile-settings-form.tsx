@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import {
@@ -46,7 +46,7 @@ export function ProfileSettingsForm({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors, isDirty },
   } = useForm<UpdateProfileInput>({
@@ -59,10 +59,10 @@ export function ProfileSettingsForm({
     },
   });
 
-  const avatarIcon = watch("avatarIcon");
-  const avatarColor = watch("avatarColor");
-  const name = watch("name");
-  const bio = watch("bio");
+  const avatarIcon = useWatch({ control, name: "avatarIcon" });
+  const avatarColor = useWatch({ control, name: "avatarColor" });
+  const name = useWatch({ control, name: "name" });
+  const bio = useWatch({ control, name: "bio" });
 
   async function onSubmit(data: UpdateProfileInput) {
     setSaving(true);
@@ -285,9 +285,6 @@ export function ProfileSettingsForm({
             <div>
               <p className="text-xs font-black text-foreground">
                 {isDirty ? "تغییرات آماده ذخیره است" : "پروفایل ذخیره‌شده است"}
-              </p>
-              <p className="mt-1 text-[11px] leading-5 text-muted">
-                بعد از ذخیره، آواتار و نامت در هدر هم به‌روزرسانی می‌شود.
               </p>
             </div>
           </div>

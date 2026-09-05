@@ -47,11 +47,15 @@ export function PwaBootstrap() {
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
 
     const register = async () => {
       try {
-        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+        await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+          updateViaCache: "none",
+        });
       } catch {
         // Ignore registration failures in the UI.
       }

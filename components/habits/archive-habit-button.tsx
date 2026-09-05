@@ -25,7 +25,6 @@ export function ArchiveHabitButton({ habitId }: { habitId: string }) {
       toast.success("عادت از لیست فعال حذف شد.");
       setOpen(false);
       router.push("/habits");
-      router.refresh();
     } catch {
       toast.error("ارتباط با سرور برقرار نشد.");
     } finally {

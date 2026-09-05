@@ -60,8 +60,8 @@ export default async function RemindersPage() {
           {!hasAny ? (
             <EmptyRemindersState />
           ) : (
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
-              <main className="min-w-0 space-y-5 xl:order-2">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:[direction:ltr]">
+              <main className="min-w-0 space-y-5 xl:[direction:rtl]">
                 {REMINDER_GROUP_ORDER.map((group) => {
                   const items = groups[group];
 
@@ -77,7 +77,7 @@ export default async function RemindersPage() {
                 })}
               </main>
 
-              <aside className="xl:order-1 xl:sticky xl:top-28 xl:self-start">
+              <aside className="xl:sticky xl:top-28 xl:self-start xl:[direction:rtl]">
                 <ReminderSideCard
                   totalCount={withReminder.length}
                   todayCount={todayCount}

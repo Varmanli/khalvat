@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 import {
   Archive,
   ArrowLeft,
@@ -651,5 +651,5 @@ function HabitIcon({
   className: string;
 }) {
   const Icon = getHabitIcon(iconType);
-  return <Icon className={className} />;
+  return createElement(Icon, { className });
 }

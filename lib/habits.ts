@@ -1,10 +1,12 @@
 import { db } from "@/db";
-import { habits, habitCategories, habitLogs } from "@/db/schema";
+import { habits, habitCategories, habitLogs, goals } from "@/db/schema";
 import { and, desc, eq, gte, lte, or } from "drizzle-orm";
 import type { HabitInput, HabitLogInput, HabitCategoryInput } from "@/lib/validations";
 import type { Habit, HabitLog, HabitCategory } from "@/db/schema";
 import { isHabitScheduledForDate, toDateString } from "@/lib/habit-utils";
 import { daysInJalaliMonth, jalaliToGregorianIso } from "@/lib/date";
+import { syncEntityNotification } from "@/lib/notifications";
+import { todayKey } from "@/lib/planner-dates";
 
 export { isHabitScheduledForDate } from "@/lib/habit-utils";
 
@@ -12,6 +14,7 @@ export { isHabitScheduledForDate } from "@/lib/habit-utils";
 
 export type HabitWithCategory = Habit & {
   category: Pick<HabitCategory, "id" | "name" | "color" | "icon"> | null;
+  goal: { id: string; title: string } | null;
 };
 
 export type HabitWithLog = HabitWithCategory & {
@@ -54,10 +57,14 @@ async function attachCategoriesToHabits(rows: Habit[]): Promise<HabitWithCategor
     : [];
 
   const catMap = Object.fromEntries(cats.map((c) => [c.id, c]));
+  const goalIds = [...new Set(rows.map((r) => r.goalId).filter(Boolean))] as string[];
+  const goalRows = goalIds.length ? await db.select({ id: goals.id, title: goals.title }).from(goals).where(goalIds.length === 1 ? eq(goals.id, goalIds[0]) : or(...goalIds.map((id) => eq(goals.id, id)))!) : [];
+  const goalMap = Object.fromEntries(goalRows.map((goal) => [goal.id, goal]));
 
   return rows.map((r) => ({
     ...r,
     category: r.categoryId ? (catMap[r.categoryId] ?? null) : null,
+    goal: r.goalId ? (goalMap[r.goalId] ?? null) : null,
   }));
 }
 
@@ -118,6 +125,25 @@ export async function getTodayHabits(userId: string): Promise<HabitWithLog[]> {
     ...h,
     todayLog: logMap[h.id] ?? null,
   }));
+}
+
+/**
+ * Reconstructs a single Tehran calendar day from actual logs and recurrence.
+ * Archived habits remain visible before their archival day, but never after it.
+ */
+export function isHabitScheduledForHistoricalDate(habit: Habit, date: string): boolean {
+  if (habit.archivedAt && todayKey(habit.archivedAt) <= date) return false;
+  return isHabitScheduledForDate({ ...habit, isActive: true, archivedAt: null }, new Date(`${date}T12:00:00`));
+}
+
+export async function getHabitsForDate(userId: string, date: string): Promise<HabitWithLog[]> {
+  const rows = await db.select().from(habits).where(and(eq(habits.userId, userId), lte(habits.startDate, date)));
+  const scheduled = (await attachCategoriesToHabits(rows)).filter((habit) => isHabitScheduledForHistoricalDate(habit, date));
+  if (!scheduled.length) return [];
+  const ids = scheduled.map((habit) => habit.id);
+  const logs = date > todayKey() ? [] : await db.select().from(habitLogs).where(and(eq(habitLogs.userId, userId), eq(habitLogs.date, date), ids.length === 1 ? eq(habitLogs.habitId, ids[0]) : or(...ids.map((id) => eq(habitLogs.habitId, id)))!));
+  const logMap = new Map(logs.map((log) => [log.habitId, log]));
+  return scheduled.map((habit) => ({ ...habit, todayLog: logMap.get(habit.id) ?? null }));
 }
 
 export async function getHabitLogsForMonth(
@@ -250,6 +276,7 @@ export async function getHabitStats(userId: string, habitId: string) {
 }
 
 export async function createHabit(userId: string, data: HabitInput): Promise<HabitWithCategory> {
+  if (data.goalId) { const [goal] = await db.select({ id: goals.id }).from(goals).where(and(eq(goals.id, data.goalId), eq(goals.userId, userId))).limit(1); if (!goal) throw new Error("هدف معتبر نیست."); }
   const endDate = computeEndDate(data.startDate, data.durationDays ?? null, data.endDate ?? null);
 
   const rows = await db
@@ -257,6 +284,7 @@ export async function createHabit(userId: string, data: HabitInput): Promise<Hab
     .values({
       userId,
       categoryId: data.categoryId ?? null,
+      goalId: data.goalId ?? null,
       title: data.title,
       shortDescription: data.shortDescription ?? null,
       color: data.color ?? "#8A5A44",
@@ -274,6 +302,11 @@ export async function createHabit(userId: string, data: HabitInput): Promise<Hab
     .returning();
 
   const result = await attachCategoriesToHabits([rows[0]]);
+  if (rows[0].reminderTime && rows[0].isActive) {
+    const today = toDateString(new Date());
+    const when = new Date(`${today}T${rows[0].reminderTime}:00`);
+    await syncEntityNotification("habit", userId, rows[0].id, { title: "وقت عادتت رسیده", body: rows[0].title, targetUrl: `/habits/${rows[0].id}`, scheduledFor: when, recurrence: "daily" });
+  }
   return result[0];
 }
 
@@ -284,6 +317,7 @@ export async function updateHabit(
 ): Promise<HabitWithCategory | null> {
   const existing = await getUserHabitById(userId, habitId);
   if (!existing) return null;
+  if (data.goalId) { const [goal] = await db.select({ id: goals.id }).from(goals).where(and(eq(goals.id, data.goalId), eq(goals.userId, userId))).limit(1); if (!goal) throw new Error("هدف معتبر نیست."); }
 
   const startDate = data.startDate ?? existing.startDate;
   const durationDays = data.durationDays !== undefined ? data.durationDays : existing.durationDays;
@@ -295,6 +329,7 @@ export async function updateHabit(
       ...(data.title !== undefined && { title: data.title }),
       ...(data.shortDescription !== undefined && { shortDescription: data.shortDescription }),
       ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
+      ...(data.goalId !== undefined && { goalId: data.goalId }),
       ...(data.color != null && { color: data.color }),
       ...(data.icon != null && { icon: data.icon }),
       ...(data.dailyGoal !== undefined && { dailyGoal: data.dailyGoal }),
@@ -315,10 +350,13 @@ export async function updateHabit(
 
   if (!rows[0]) return null;
   const result = await attachCategoriesToHabits([rows[0]]);
+  await syncEntityNotification("habit", userId, habitId, { title: "", targetUrl: `/habits/${habitId}`, scheduledFor: null });
+  if (rows[0].reminderTime && rows[0].isActive) await syncEntityNotification("habit", userId, habitId, { title: "وقت عادتت رسیده", body: rows[0].title, targetUrl: `/habits/${habitId}`, scheduledFor: new Date(`${toDateString(new Date())}T${rows[0].reminderTime}:00`), recurrence: "daily" });
   return result[0] ?? null;
 }
 
 export async function archiveHabit(userId: string, habitId: string): Promise<void> {
+  await syncEntityNotification("habit", userId, habitId, { title: "", targetUrl: `/habits/${habitId}`, scheduledFor: null });
   await db
     .update(habits)
     .set({ archivedAt: new Date(), isActive: false, updatedAt: new Date() })

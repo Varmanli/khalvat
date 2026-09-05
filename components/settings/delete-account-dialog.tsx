@@ -34,6 +34,8 @@ export function DeleteAccountDialog({
     if (open) {
       setTimeout(() => phraseInputRef.current?.focus(), 50);
     } else {
+      // Reset the confirmation fields whenever the dialog closes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPhrase("");
       setPassword("");
       setEmailConfirm("");
@@ -79,7 +81,6 @@ export function DeleteAccountDialog({
 
       toast.success("حساب شما حذف شد.");
       router.replace("/");
-      router.refresh();
     } catch {
       toast.error("خطایی رخ داد. دوباره تلاش کن.");
     } finally {

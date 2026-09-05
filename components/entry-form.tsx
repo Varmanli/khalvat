@@ -123,7 +123,11 @@ const TYPE_HELP: Record<
   },
 };
 
-export function EntryForm({ entryId, defaultValues, categories = [] }: EntryFormProps) {
+export function EntryForm({
+  entryId,
+  defaultValues,
+  categories = [],
+}: EntryFormProps) {
   const router = useRouter();
   const isEdit = Boolean(entryId);
 
@@ -161,12 +165,10 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
 
   const currentType = useWatch({ control, name: "type" });
   const currentContent = useWatch({ control, name: "content" }) ?? "";
-  const currentTitle = useWatch({ control, name: "title" }) ?? "";
   const isPinned = useWatch({ control, name: "isPinned" });
 
   const currentHelp = TYPE_HELP[currentType as EntryType] ?? TYPE_HELP.note;
   const contentLength = htmlToPlainText(String(currentContent)).length;
-  const titleLength = String(currentTitle).trim().length;
 
   async function createCategory() {
     const name = newCatName.trim();
@@ -223,7 +225,6 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
       toast.success(isEdit ? "تغییرات ذخیره شد." : "نوشته ثبت شد.");
       const id = entryId ?? json.data?.id;
       router.push(`/entries/${id}`);
-      router.refresh();
     } else {
       toast.error(json.error?.message ?? "خطایی رخ داد.");
     }
@@ -264,61 +265,27 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
 
       {/* Type shortcuts */}
       {!isEdit && (
-        <FormSection
-          icon={<PenLine className="size-4" />}
-          title="نوع نوشته"
-          description="اول مشخص کن این صفحه چه حال‌وهوایی دارد."
-        >
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {TYPE_SHORTCUTS.map((type) => {
+        <FormSection icon={<PenLine className="size-4" />} title="نوع نوشته">
+          <CustomSelect
+            value={currentType}
+            onValueChange={(value) =>
+              setValue("type", value as EntryType, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            options={TYPE_SHORTCUTS.map((type) => {
               const meta = ENTRY_TYPE_META[type];
               const Icon = meta.icon;
-              const isActive = currentType === type;
-
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() =>
-                    setValue("type", type, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                  className={cn(
-                    "group relative flex items-center gap-2.5 overflow-hidden rounded-2xl border px-3 py-2.5 text-right transition-all duration-200",
-                    isActive
-                      ? "border-primary bg-primary text-white shadow-[0_14px_36px_rgba(138,90,68,0.22)]"
-                      : "border-border bg-card hover:-translate-y-0.5 hover:border-primary-soft hover:bg-background hover:shadow-[0_10px_30px_rgba(94,58,47,0.07)]",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex size-8 shrink-0 items-center justify-center rounded-xl transition-colors",
-                      isActive ? "bg-white/15 text-white" : "bg-card-soft text-primary",
-                    )}
-                  >
-                    <Icon size={15} />
-                  </span>
-
-                  <span
-                    className={cn(
-                      "flex-1 text-sm font-black",
-                      isActive ? "text-white" : "text-foreground",
-                    )}
-                  >
-                    {meta.label}
-                  </span>
-
-                  {isActive && (
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white/20">
-                      <Check className="size-3" />
-                    </span>
-                  )}
-                </button>
-              );
+              return {
+                value: type,
+                label: meta.label,
+                description: TYPE_HELP[type].text,
+                icon: <Icon className="size-4 text-primary" />,
+              };
             })}
-          </div>
+            triggerClassName="h-14 rounded-2xl bg-card px-4 text-base font-black shadow-sm hover:border-primary/40"
+          />
 
           {/* Selected type hint */}
           <div className="flex items-start gap-3 mt-4 rounded-2xl border border-border bg-background/70 px-4 py-3">
@@ -326,8 +293,12 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
               <Lightbulb className="size-4" />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-black text-foreground">{currentHelp.title}</p>
-              <p className="mt-0.5 text-xs leading-5 text-muted">{currentHelp.text}</p>
+              <p className="text-sm font-black text-foreground">
+                {currentHelp.title}
+              </p>
+              <p className="mt-0.5 text-xs leading-5 text-muted">
+                {currentHelp.text}
+              </p>
             </div>
           </div>
 
@@ -336,22 +307,13 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
       )}
 
       {/* Main writing area */}
-      <FormSection
-        icon={<PenLine className="size-4" />}
-        title="متن نوشته"
-        description="عنوان کوتاه، متن اصلی و تگ‌ها را اینجا وارد کن."
-      >
+      <FormSection icon={<PenLine className="size-4" />} title="متن نوشته">
         <div className="space-y-5">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-3">
               <label className="text-sm font-black text-foreground">
                 عنوان
               </label>
-              <span className="text-xs font-semibold text-muted">
-                {titleLength > 0
-                  ? `${formatPersianNumber(titleLength)} نویسه`
-                  : "اختیاری ولی بهتر است کوتاه باشد"}
-              </span>
             </div>
 
             <input
@@ -370,13 +332,7 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-semibold text-muted">
-                {contentLength > 0
-                  ? `${formatPersianNumber(contentLength)} نویسه نوشته‌ای`
-                  : "از یک جمله هم می‌شود شروع کرد"}
-              </span>
-            </div>
+            <div className="flex items-center justify-between gap-3"></div>
 
             <Controller
               control={control}
@@ -389,7 +345,6 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
                   placeholder={currentHelp.placeholder}
                   error={errors.content?.message}
                   minHeight={320}
-                  helperText="از یک جمله هم می‌شود شروع کرد."
                 />
               )}
             />
@@ -414,11 +369,7 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
       </FormSection>
 
       {/* Category */}
-      <FormSection
-        icon={<FolderPlus className="size-4" />}
-        title="دسته‌بندی"
-        description="اگر این نوشته جایش در یک دسته مشخص است، اینجا انتخابش کن."
-      >
+      <FormSection icon={<FolderPlus className="size-4" />} title="دسته‌بندی">
         <div className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
@@ -506,7 +457,6 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
       <FormSection
         icon={<Palette className="size-4" />}
         title="جزئیات و حال‌وهوا"
-        description="برای اینکه بعداً راحت‌تر برگردی سراغ این نوشته."
       >
         <div className="grid gap-4 md:grid-cols-2">
           {isEdit && (
@@ -559,7 +509,6 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
       <FormSection
         icon={<Bell className="size-4" />}
         title="یادآوری و نگه‌داشتن"
-        description="اگر این نوشته مهم است، برایش زمان یا جای ویژه بگذار."
       >
         <div className="space-y-4">
           <Controller
@@ -612,15 +561,7 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
                     isPinned ? "text-white" : "text-foreground",
                   )}
                 >
-                  پین کردن این نوشته
-                </span>
-                <span
-                  className={cn(
-                    "mt-1 block text-xs leading-5",
-                    isPinned ? "text-white/75" : "text-muted",
-                  )}
-                >
-                  نوشته‌های پین‌شده همیشه جلوی چشم می‌مانند.
+                  سنجاق کردن این نوشته
                 </span>
               </span>
             </span>
@@ -651,9 +592,6 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
               <div>
                 <p className="text-xs font-black text-foreground">
                   {isEdit ? "آماده ذخیره تغییرات" : "آماده ساخت نوشته"}
-                </p>
-                <p className="mt-1 text-xs text-muted">
-                  هر وقت حس کردی کافی‌ست، ذخیره‌اش کن.
                 </p>
               </div>
             </div>
@@ -686,24 +624,21 @@ export function EntryForm({ entryId, defaultValues, categories = [] }: EntryForm
 function FormSection({
   icon,
   title,
-  description,
   children,
 }: {
   icon: React.ReactNode;
   title: string;
-  description: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-4xl border border-border bg-background/52 p-4 shadow-inner sm:p-5">
-      <div className="mb-5 flex items-start gap-3">
+      <div className="mb-3 flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-card-soft text-primary shadow-sm">
           {icon}
         </span>
 
         <div>
           <h3 className="text-sm font-black text-foreground">{title}</h3>
-          <p className="mt-1 text-xs leading-5 text-muted">{description}</p>
         </div>
       </div>
 

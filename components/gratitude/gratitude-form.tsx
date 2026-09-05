@@ -37,6 +37,8 @@ export function GratitudeForm({ initialEntry, date, dateLabel }: GratitudeFormPr
 
   // Reset form whenever the selected date or the underlying entry changes
   useEffect(() => {
+    // This effect intentionally synchronizes the editable form with a newly selected entry.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(getDefaultItems(initialEntry));
     setNote(initialEntry?.note ?? "");
   }, [date, initialEntry?.id, initialEntry?.updatedAt]);

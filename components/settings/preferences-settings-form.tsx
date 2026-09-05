@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { updatePreferencesSchema, type UpdatePreferencesInput } from "@/lib/validations";
@@ -28,7 +28,7 @@ export function PreferencesSettingsForm({
 }: PreferencesSettingsFormProps) {
   const [saving, setSaving] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } =
+  const { control, register, handleSubmit, setValue, formState: { errors } } =
     useForm<UpdatePreferencesInput>({
       resolver: zodResolver(updatePreferencesSchema),
       defaultValues: {
@@ -38,7 +38,7 @@ export function PreferencesSettingsForm({
       },
     });
 
-  const currentHome = watch("defaultHome");
+  const currentHome = useWatch({ control, name: "defaultHome" });
 
   async function onSubmit(data: UpdatePreferencesInput) {
     setSaving(true);

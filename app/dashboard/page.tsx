@@ -122,7 +122,7 @@ export default async function DashboardPage() {
               description="تمام صفحه‌هایی که تا امروز نوشته‌ای"
             />
             <StatCard
-              label="پین‌شده‌ها"
+              label="سنجاق شده‌ها"
               value={pinnedCount}
               icon={<Pin className="size-5" />}
               href="/entries"
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
               {pinned.length > 0 && (
                 <JournalSection
                   icon={<Pin className="size-4" />}
-                  title="نوشته‌های پین‌شده"
+                  title="نوشته‌های سنجاق شده"
                   subtitle="صفحه‌هایی که هنوز باید نزدیک بمانند."
                   actionHref="/entries"
                   actionLabel="مدیریت نوشته‌ها"
@@ -188,7 +188,7 @@ export default async function DashboardPage() {
                 ) : recent.length === 0 ? (
                   <div className="rounded-[1.75rem] border border-border bg-card p-8 text-center shadow-[0_18px_60px_rgba(94,58,47,0.06)]">
                     <p className="font-semibold text-foreground">
-                      همه نوشته‌ها پین شده‌اند.
+                      همه نوشته‌ها سنجاق شده‌اند.
                     </p>
                     <p className="mt-2 text-sm text-muted">
                       انگار همه صفحه‌ها برایت مهم‌اند؛ بد هم نیست.

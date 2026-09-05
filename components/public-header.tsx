@@ -34,9 +34,9 @@ export function PublicHeader() {
             <span className="relative flex items-center">
               <span className="absolute -inset-2 rounded-3xl bg-primary-soft/20 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
               <Image
-                src="/logo.png"
+                src="/Logo.png"
                 alt="لوگوی خلوت"
-                width={160}
+                width={180}
                 height={48}
                 className="relative h-10 w-auto object-contain sm:h-12"
                 priority

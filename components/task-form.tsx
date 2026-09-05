@@ -39,7 +39,8 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { CustomSelect } from "@/components/ui/custom-select";
 import { JalaliDateTimePicker } from "@/components/ui/jalali-date-time-picker";
-import type { TaskCategory } from "@/db/schema";
+import { toGregorianIso } from "@/lib/date";
+import type { Goal, TaskCategory } from "@/db/schema";
 
 type FormValues = z.input<typeof taskSchema>;
 
@@ -47,9 +48,10 @@ interface TaskFormProps {
   taskId?: string;
   defaultValues?: Partial<FormValues>;
   categories: TaskCategory[];
+  goals?: Pick<Goal, "id" | "title" | "status">[];
 }
 
-export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
+export function TaskForm({ taskId, defaultValues, categories, goals = [] }: TaskFormProps) {
   const router = useRouter();
   const isEdit = Boolean(taskId);
 
@@ -77,9 +79,13 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
       description: defaultValues?.description ?? "",
       priority: defaultValues?.priority ?? "medium",
       status: defaultValues?.status ?? "todo",
-      categoryId: defaultValues?.categoryId ?? "",
+      categoryId: defaultValues?.categoryId || null,
+      goalId: defaultValues?.goalId || null,
       color: defaultValues?.color ?? "",
       dueAt: defaultValues?.dueAt ?? null,
+      scheduledDate: defaultValues?.scheduledDate ?? null,
+      scheduledTime: defaultValues?.scheduledTime ?? null,
+      scheduledEndTime: defaultValues?.scheduledEndTime ?? null,
       isPinned: defaultValues?.isPinned ?? false,
     },
   });
@@ -90,8 +96,11 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
   async function onSubmit(data: FormValues) {
     const payload = {
       ...data,
-      description: data.description ? persianizeHtmlText(data.description) : data.description,
+      description: data.description
+        ? persianizeHtmlText(data.description)
+        : data.description,
       categoryId: data.categoryId || null,
+      goalId: data.goalId || null,
       color: data.color || null,
       dueAt: data.dueAt || null,
     };
@@ -111,7 +120,6 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
       toast.success(isEdit ? "وظیفه ذخیره شد." : "وظیفه جدید ثبت شد.");
       const id = taskId ?? json.data?.id;
       router.push(`/tasks/${id}`);
-      router.refresh();
       return;
     }
 
@@ -217,6 +225,10 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
         </div>
       </FormSection>
 
+      <FormSection icon={<Layers3 className="size-5" />} eyebrow="مسیر بزرگ‌تر" title="اتصال به هدف" description="اختیاری است؛ این وظیفه را به یک هدف بزرگ‌تر وصل کن.">
+        <Controller control={control} name="goalId" render={({ field }) => <CustomSelect label="هدف" value={field.value ?? ""} onValueChange={(value) => field.onChange(value || null)} options={[{ value: "", label: "بدون هدف" }, ...goals.filter((goal) => goal.status === "active" || goal.id === defaultValues?.goalId).map((goal) => ({ value: goal.id, label: goal.title }))]} placeholder="بدون هدف" error={errors.goalId?.message} />} />
+      </FormSection>
+
       <FormSection
         icon={<Flag className="size-5" />}
         eyebrow="وضعیت و اهمیت"
@@ -270,7 +282,7 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
                   <CustomSelect
                     label="دسته‌بندی"
                     value={field.value ?? ""}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => field.onChange(value || null)}
                     options={categoryOptions}
                     placeholder="بدون دسته‌بندی"
                     error={errors.categoryId?.message}
@@ -349,6 +361,56 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
         title="اگر موعدی دارد، ثبتش کن"
         description="تاریخ برای فشار آوردن نیست؛ برای این است که لازم نباشد همه چیز را توی ذهنت نگه داری."
       >
+        <Controller
+          control={control}
+          name="scheduledDate"
+          render={({ field }) => (
+            <JalaliDateTimePicker
+              label="روز برنامه (اختیاری)"
+              clearable
+              value={field.value ? field.value + "T12:00:00" : null}
+              onChange={(v) => {
+                field.onChange(v ? toGregorianIso(new Date(v)) : null);
+                if (!v) {
+                  setValue("scheduledTime", null);
+                  setValue("scheduledEndTime", null);
+                }
+              }}
+              error={errors.scheduledDate?.message}
+            />
+          )}
+        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Controller
+            control={control}
+            name="scheduledTime"
+            render={({ field }) => (
+              <Input
+                label="ساعت برنامه (اختیاری)"
+                type="time"
+                dir="ltr"
+                value={field.value ?? ""}
+                onChange={(e) => {
+                  field.onChange(e.target.value || null);
+                  if (!e.target.value) setValue("scheduledEndTime", null);
+                }}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="scheduledEndTime"
+            render={({ field }) => (
+              <Input
+                label="ساعت پایان (اختیاری)"
+                type="time"
+                dir="ltr"
+                value={field.value ?? ""}
+                onChange={(e) => field.onChange(e.target.value || null)}
+              />
+            )}
+          />
+        </div>
         <Controller
           control={control}
           name="dueAt"
@@ -437,12 +499,12 @@ export function TaskForm({ taskId, defaultValues, categories }: TaskFormProps) {
 
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-black text-foreground">
-                پین کردن این وظیفه
+                سنجاق کردن این وظیفه
               </span>
               <span className="mt-1 block text-xs leading-6 text-muted">
                 {isPinned
                   ? "این وظیفه بالاتر و دم‌دست‌تر دیده می‌شود."
-                  : "اگر مهم است، پینش کن تا بین کارهای دیگر گم نشود."}
+                  : "اگر مهم است، سنجاق کن تا بین کارهای دیگر گم نشود."}
               </span>
             </span>
 
@@ -502,9 +564,19 @@ const QUICK_TEMPLATES: {
   { label: "تماس با...", prefix: "تماس با ", priority: "medium", icon: Phone },
   { label: "پرداخت...", prefix: "پرداخت ", priority: "high", icon: CreditCard },
   { label: "خرید...", prefix: "خرید ", priority: "low", icon: ShoppingBag },
-  { label: "بررسی...", prefix: "بررسی ", priority: "medium", icon: SearchCheck },
+  {
+    label: "بررسی...",
+    prefix: "بررسی ",
+    priority: "medium",
+    icon: SearchCheck,
+  },
   { label: "ارسال...", prefix: "ارسال ", priority: "medium", icon: Send },
-  { label: "سلامتی / تمرین", prefix: "سلامتی / تمرین", priority: "medium", icon: Dumbbell },
+  {
+    label: "سلامتی / تمرین",
+    prefix: "سلامتی / تمرین",
+    priority: "medium",
+    icon: Dumbbell,
+  },
 ];
 
 function QuickTemplates({

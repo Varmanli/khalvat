@@ -81,7 +81,7 @@ export default async function TaskDetailPage({ params }: Params) {
                           {task.isPinned && (
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft/45 px-3 py-1.5 text-xs font-black text-primary-dark">
                               <Pin className="size-3.5" />
-                              پین‌شده
+                              سنجاق شده
                             </span>
                           )}
                         </div>

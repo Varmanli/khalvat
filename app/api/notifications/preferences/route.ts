@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { getNotificationPreferences, updatePreferences } from "@/lib/notifications";
+import { z } from "zod";
+const schema = z.object({ enabled: z.boolean().optional(), moodEnabled: z.boolean().optional(), moodTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(), gratitudeEnabled: z.boolean().optional(), gratitudeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(), habitsEnabled: z.boolean().optional(), tasksEnabled: z.boolean().optional(), eventsEnabled: z.boolean().optional(), manualEnabled: z.boolean().optional(), taskOffsetMinutes: z.number().int().min(0).max(1440).optional(), eventOffsetMinutes: z.number().int().min(0).max(1440).optional(), quietHoursStart: z.string().nullable().optional(), quietHoursEnd: z.string().nullable().optional() });
+export async function GET() { const user = await getCurrentUser(); if (!user) return NextResponse.json({ ok: false }, { status: 401 }); return NextResponse.json({ ok: true, data: await getNotificationPreferences(user.userId) }); }
+export async function PATCH(request: Request) { const user = await getCurrentUser(); if (!user) return NextResponse.json({ ok: false }, { status: 401 }); const parsed = schema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ ok: false }, { status: 400 }); await updatePreferences(user.userId, parsed.data); return NextResponse.json({ ok: true, data: await getNotificationPreferences(user.userId) }); }

@@ -8,6 +8,13 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const sql = postgres(process.env.DATABASE_URL);
+// Keep one bounded pool across development reloads of planner/schema modules.
+const globalDb = globalThis as unknown as { khalvatSql?: ReturnType<typeof postgres> };
+const sql = globalDb.khalvatSql ?? postgres(process.env.DATABASE_URL, {
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
+if (process.env.NODE_ENV !== "production") globalDb.khalvatSql = sql;
 export const db = drizzle(sql, { schema });
 export { sql };

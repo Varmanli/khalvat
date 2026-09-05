@@ -29,7 +29,7 @@ import { habitSchema, type HabitInput } from "@/lib/validations";
 import { formatPersianNumber, toPersianDigits } from "@/lib/persian-numbers";
 import { cn } from "@/lib/utils";
 import type { HabitWithCategory } from "@/lib/habits";
-import type { HabitCategory } from "@/db/schema";
+import type { Goal, HabitCategory } from "@/db/schema";
 import { HabitColorPicker } from "./habit-color-picker";
 import { HABIT_ICONS, getHabitIcon, HabitIconPicker } from "./habit-icon-picker";
 import { HabitRepeatPicker } from "./habit-repeat-picker";
@@ -37,6 +37,8 @@ import { HabitRepeatPicker } from "./habit-repeat-picker";
 interface HabitFormProps {
   habit?: HabitWithCategory;
   categories?: HabitCategory[];
+  goals?: Pick<Goal, "id" | "title" | "status">[];
+  initialGoalId?: string | null;
 }
 
 function getTodayIsoDate() {
@@ -83,7 +85,7 @@ function DynamicHabitIcon({ iconKey, className }: { iconKey: string; className?:
   return React.createElement(getHabitIcon(iconKey), { className });
 }
 
-export function HabitForm({ habit, categories = [] }: HabitFormProps) {
+export function HabitForm({ habit, categories = [], goals = [], initialGoalId = null }: HabitFormProps) {
   const router = useRouter();
   const isEdit = Boolean(habit);
 
@@ -115,6 +117,7 @@ export function HabitForm({ habit, categories = [] }: HabitFormProps) {
       title: habit?.title ?? "",
       shortDescription: habit?.shortDescription ?? "",
       categoryId: habit?.categoryId ?? "",
+      goalId: habit?.goalId ?? initialGoalId ?? "",
       color: habit?.color ?? "#8A5A44",
       icon: habit?.icon ?? "star",
       dailyGoal: habit?.dailyGoal ?? undefined,
@@ -177,6 +180,7 @@ export function HabitForm({ habit, categories = [] }: HabitFormProps) {
       repeatType,
       weeklyDays,
       categoryId: data.categoryId || null,
+      goalId: data.goalId || null,
       unit: data.unit || null,
       reminderTime: data.reminderTime || null,
       durationDays: data.durationDays || null,
@@ -201,7 +205,6 @@ export function HabitForm({ habit, categories = [] }: HabitFormProps) {
 
     toast.success(isEdit ? "عادت ویرایش شد." : "عادت جدید ثبت شد.");
     router.push(isEdit ? `/habits/${habit!.id}` : "/habits");
-    router.refresh();
   }
 
   return (
@@ -295,6 +298,10 @@ export function HabitForm({ habit, categories = [] }: HabitFormProps) {
             )}
           </Field>
         </div>
+      </FormSection>
+
+      <FormSection icon={<Target className="size-5" />} eyebrow="مسیر بزرگ‌تر" title="اتصال به هدف" description="اختیاری است؛ این عادت را به یک هدف بزرگ‌تر وصل کن.">
+        <Controller control={control} name="goalId" render={({ field }) => <CustomSelect label="هدف" value={field.value ?? ""} onValueChange={(value) => field.onChange(value || null)} options={[{ value: "", label: "بدون هدف" }, ...goals.filter((goal) => goal.status === "active" || goal.id === habit?.goalId).map((goal) => ({ value: goal.id, label: goal.title }))]} placeholder="بدون هدف" error={errors.goalId?.message} />} />
       </FormSection>
 
       <FormSection

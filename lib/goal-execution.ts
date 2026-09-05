@@ -1,0 +1,16 @@
+import { isHabitScheduledForDate, toDateString } from "@/lib/habit-utils";
+import { rangeDays, shiftDay, todayKey } from "@/lib/planner-dates";
+type Task = { id:string; title:string; status:string; scheduledDate:string|null; scheduledTime:string|null; dueAt:Date|null };
+type Habit = Parameters<typeof isHabitScheduledForDate>[0] & { id:string; title:string };
+type Milestone = { id:string; title:string; status:string; targetDate:string|null };
+type Log = { habitId:string; date:string; status:string };
+export type GoalNextAction = { type:"task"|"habit"|"milestone"; id:string; title:string; date:string|null; metadata:string; href:string } | null;
+const taskDate = (task:Task) => task.scheduledDate ?? (task.dueAt ? toDateString(task.dueAt) : null);
+export function getGoalNextAction(tasks:Task[], habits:Habit[], milestones:Milestone[], logs:Log[], now=new Date()):GoalNextAction {
+ const today=todayKey(now); const scheduled=tasks.filter(t=>t.status!=="done"&&taskDate(t)).sort((a,b)=>(taskDate(a)??"").localeCompare(taskDate(b)??"")); if(scheduled[0]) return {type:"task",id:scheduled[0].id,title:scheduled[0].title,date:taskDate(scheduled[0]),metadata:scheduled[0].scheduledTime??"وظیفه",href:`/tasks/${scheduled[0].id}`};
+ for(let i=0;i<14;i++){const date=shiftDay(today,i);const habit=habits.find(h=>isHabitScheduledForDate(h,new Date(`${date}T12:00:00`))&&!logs.some(l=>l.habitId===h.id&&l.date===date&&l.status==="done"));if(habit)return {type:"habit",id:habit.id,title:habit.title,date,metadata:"عادت برنامه‌ریزی‌شده",href:`/habits/${habit.id}`};}
+ const milestone=milestones.filter(m=>m.status!=="completed"&&m.targetDate).sort((a,b)=>(a.targetDate??"").localeCompare(b.targetDate??""))[0]; if(milestone)return {type:"milestone",id:milestone.id,title:milestone.title,date:milestone.targetDate,metadata:"نقطه عطف",href:"#milestones"};
+ const unscheduled=tasks.find(t=>t.status!=="done"); return unscheduled?{type:"task",id:unscheduled.id,title:unscheduled.title,date:null,metadata:"وظیفه",href:`/tasks/${unscheduled.id}`}:null;
+}
+export function getGoalWeekSummary(tasks:Task[], habits:Habit[], milestones:Milestone[], logs:Log[], now=new Date()) { const today=todayKey(now); const start=shiftDay(today,-((new Date(`${today}T12:00:00`).getDay()+1)%7)),end=shiftDay(start,7),days=rangeDays(start,end); const inWeek=(d:string|null)=>!!d&&d>=start&&d<end; const planned=tasks.filter(t=>inWeek(taskDate(t))); return { taskPlanned:planned.length,taskCompleted:planned.filter(t=>t.status==="done").length,habitPlanned:habits.reduce((n,h)=>n+days.filter(d=>isHabitScheduledForDate(h,new Date(`${d}T12:00:00`))).length,0),habitCompleted:logs.filter(l=>l.status==="done"&&inWeek(l.date)).length,milestonesDue:milestones.filter(m=>m.status!=="completed"&&inWeek(m.targetDate)).length }; }
+export function getGoalUpcoming(tasks:Task[], milestones:Milestone[], limit=5, now=new Date()){const today=todayKey(now);return [...tasks.filter(t=>t.status!=="done"&&taskDate(t)&&taskDate(t)!>=today).map(t=>({type:"task" as const,id:t.id,title:t.title,date:taskDate(t)!,href:`/tasks/${t.id}`})),...milestones.filter(m=>m.status!=="completed"&&m.targetDate&&m.targetDate>=today).map(m=>({type:"milestone" as const,id:m.id,title:m.title,date:m.targetDate!,href:"#milestones"}))].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,limit);}

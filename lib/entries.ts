@@ -10,6 +10,7 @@ import {
   getTagsForEntries,
   type TagInfo,
 } from "@/lib/tags";
+import { syncEntityNotification } from "@/lib/notifications";
 
 export interface EntryCategoryInfo {
   id: string;
@@ -26,6 +27,7 @@ export interface EntryFilters {
   tag?: string; // tag slug
   /** UUID to filter by category, "none" for entries without a category, or undefined for all. */
   categoryId?: string;
+  limit?: number;
 }
 
 export interface EntryWithTags {
@@ -103,7 +105,8 @@ export async function getUserEntries(
     .select()
     .from(entries)
     .where(and(...conditions))
-    .orderBy(desc(entries.isPinned), desc(entries.createdAt));
+    .orderBy(desc(entries.isPinned), desc(entries.createdAt))
+    .limit(filters?.limit ?? 100);
 
   const [tagMap, categoryMap] = await Promise.all([
     getTagsForEntries(rows.map((r) => r.id)),
@@ -170,6 +173,7 @@ export async function createEntry(
     .returning();
 
   const entry = rows[0];
+  await syncEntityNotification("manual", userId, entry.id, { title: entry.title, body: entry.content.slice(0, 140), targetUrl: `/entries/${entry.id}`, scheduledFor: entry.reminderAt });
   const tagNames = parseTagsInput(data.tags ?? "");
   await syncEntryTags(userId, entry.id, tagNames);
 
@@ -217,6 +221,7 @@ export async function updateEntry(
 
   if (!rows[0]) return null;
   const entry = rows[0];
+  await syncEntityNotification("manual", userId, entry.id, { title: entry.title, body: entry.content.slice(0, 140), targetUrl: `/entries/${entry.id}`, scheduledFor: entry.status === "done" || entry.status === "archived" ? null : entry.reminderAt });
 
   // Sync tags only if tags field was explicitly provided
   if (data.tags !== undefined) {
@@ -239,6 +244,7 @@ export async function updateEntry(
 }
 
 export async function deleteEntry(userId: string, entryId: string) {
+  await syncEntityNotification("manual", userId, entryId, { title: "", targetUrl: `/entries/${entryId}`, scheduledFor: null });
   await db
     .delete(entries)
     .where(and(eq(entries.id, entryId), eq(entries.userId, userId)));

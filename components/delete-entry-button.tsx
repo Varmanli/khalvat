@@ -27,7 +27,6 @@ export function DeleteEntryButton({ entryId }: { entryId: string }) {
       toast.success("نوشته حذف شد.");
       setOpen(false);
       router.push("/entries");
-      router.refresh();
     } catch {
       toast.error("ارتباط با سرور برقرار نشد.");
     } finally {

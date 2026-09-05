@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { planningDateSchema, planningTimeSchema } from "./planner-validation";
 import { htmlToPlainText } from "@/lib/html-utils";
 import { USER_AVATAR_ICONS, USER_AVATAR_COLORS } from "@/lib/avatar-options";
 
@@ -43,7 +44,10 @@ export const entrySchema = z.object({
   ]),
   status: z.enum(["raw", "active", "done", "archived", "dropped"]),
   isPinned: z.boolean().optional().default(false),
-  reminderAt: z.string().optional().nullable(),
+  // The picker always serializes a Gregorian ISO timestamp with an offset.
+  // Reject date-only, Jalali, and malformed values before they can reach a
+  // PostgreSQL timestamp column.
+  reminderAt: z.iso.datetime({ offset: true }).optional().nullable(),
   /** Comma-separated tag names, e.g. "ایده, شعر" or "#ایده #شعر" */
   tags: z.string().optional().default(""),
   categoryId: z
@@ -83,8 +87,12 @@ export const taskSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
   status: z.enum(["todo", "in_progress", "done", "archived"]).default("todo"),
   categoryId: z.string().uuid().optional().nullable(),
+  goalId: z.string().uuid().optional().nullable(),
   color: z.string().optional().nullable(),
-  dueAt: z.string().optional().nullable(),
+  dueAt: z.iso.datetime({ offset: true }).optional().nullable(),
+  scheduledDate: planningDateSchema.optional().nullable(),
+  scheduledTime: planningTimeSchema.optional().nullable(),
+  scheduledEndTime: planningTimeSchema.optional().nullable(),
   isPinned: z.boolean().optional().default(false),
 });
 
@@ -95,6 +103,13 @@ export const taskCategorySchema = z.object({
     .max(100, "نام نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد"),
   color: z.string().optional().default("#8A5A44"),
 });
+
+// PATCH must not apply creation defaults to fields the caller did not send.
+export const taskUpdateSchema = taskSchema.extend({
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  status: z.enum(["todo", "in_progress", "done", "archived"]),
+  isPinned: z.boolean(),
+}).partial();
 
 export type TaskInput = z.infer<typeof taskSchema>;
 export type TaskCategoryInput = z.infer<typeof taskCategorySchema>;
@@ -146,6 +161,17 @@ export const dailyCheckInSchema = z.object({
 
 export type DailyCheckInInput = z.infer<typeof dailyCheckInSchema>;
 
+export const dailyJournalSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ معتبر نیست"),
+  journalContent: z.string().max(6000, "یادداشت طولانی است").optional().default(""),
+  memorableMoment: z.string().max(1200, "یادداشت طولانی است").optional().default(""),
+  reflectionGood: z.string().max(2000, "یادداشت طولانی است").optional().default(""),
+  reflectionBetter: z.string().max(2000, "یادداشت طولانی است").optional().default(""),
+  reflectionRemember: z.string().max(2000, "یادداشت طولانی است").optional().default(""),
+  close: z.boolean().optional(),
+});
+export type DailyJournalInput = z.infer<typeof dailyJournalSchema>;
+
 // ── Habit schemas ─────────────────────────────────────────────
 
 export const habitSchema = z
@@ -156,6 +182,7 @@ export const habitSchema = z
       .max(120, "عنوان نمی‌تواند بیشتر از ۱۲۰ کاراکتر باشد"),
     shortDescription: z.string().max(280, "توضیح نمی‌تواند بیشتر از ۲۸۰ کاراکتر باشد").optional().nullable(),
     categoryId: z.string().uuid().optional().nullable(),
+    goalId: z.string().uuid().optional().nullable(),
     color: z.string().optional().nullable(),
     icon: z.string().optional().nullable(),
     dailyGoal: z.coerce.number().positive("هدف روزانه باید عدد مثبت باشد").optional().nullable(),
@@ -201,6 +228,37 @@ export const habitCategorySchema = z.object({
 export type HabitInput = z.infer<typeof habitSchema>;
 export type HabitLogInput = z.infer<typeof habitLogSchema>;
 export type HabitCategoryInput = z.infer<typeof habitCategorySchema>;
+
+// ── Goals ─────────────────────────────────────────────────────────
+const goalDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ معتبر نیست");
+export const goalSchema = z.object({
+  title: z.string().trim().min(1, "عنوان هدف الزامی است").max(180),
+  description: z.string().max(3000).optional().nullable(),
+  motivation: z.string().max(1200).optional().nullable(),
+  successCriteria: z.array(z.string().trim().min(1).max(300)).max(12).default([]),
+  type: z.enum(["short_term", "medium_term", "long_term"]).default("medium_term"),
+  status: z.enum(["planning", "active", "paused", "completed", "cancelled", "archived"]).default("planning"),
+  progressMethod: z.enum(["manual", "milestones", "tasks", "habits", "numeric", "time"]).default("manual"),
+  progress: z.coerce.number().min(0).max(100).optional().default(0),
+  targetValue: z.coerce.number().positive().optional().nullable(), currentValue: z.coerce.number().min(0).optional().nullable(), unit: z.string().max(32).optional().nullable(),
+  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"), startDate: goalDate.optional().nullable(), targetDate: goalDate.optional().nullable(),
+  scheduleType: z.enum(["daily", "weekdays", "custom"]).optional().nullable(),
+  weeklyDays: z.array(z.number().int().min(0).max(6)).max(7).optional().default([]),
+  customDaysPerMonth: z.coerce.number().int().min(1).max(31).optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.startDate && data.targetDate && data.targetDate < data.startDate) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["targetDate"], message: "تاریخ هدف باید بعد از تاریخ شروع باشد." });
+  }
+  if (data.scheduleType === "weekdays" && (!data.weeklyDays || data.weeklyDays.length === 0)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["weeklyDays"], message: "حداقل یک روز هفته را انتخاب کن." });
+  }
+  if (data.scheduleType === "custom" && data.customDaysPerMonth == null) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["customDaysPerMonth"], message: "تعداد روزهای ماه را وارد کن." });
+  }
+});
+export const goalMilestoneSchema = z.object({ title: z.string().trim().min(1).max(180), description: z.string().max(1000).optional().nullable(), targetDate: goalDate.optional().nullable(), order: z.number().int().min(0).optional(), status: z.enum(["pending", "completed"]).optional() });
+export const goalReviewSchema = z.object({ progressNote: z.string().max(2000).optional().nullable(), worked: z.string().max(2000).optional().nullable(), blocked: z.string().max(2000).optional().nullable(), nextStep: z.string().max(1000).optional().nullable() });
+export type GoalInput = z.infer<typeof goalSchema>;
 
 // ── Settings schemas ──────────────────────────────────────────────
 

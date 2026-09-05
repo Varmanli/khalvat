@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 import {
   ArrowLeft,
   CalendarCheck,
@@ -54,7 +54,7 @@ export default async function EditHabitPage({
         <div className="pointer-events-none absolute left-0 top-36 size-80 rounded-full bg-gold/12 blur-3xl" />
 
         <div className="relative space-y-6 lg:space-y-8">
-          <EditHabitHero habit={habit} icon={<Icon className="size-7" />} />
+          <EditHabitHero habit={habit} icon={createElement(Icon, { className: "size-7" })} />
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
             <main className="min-w-0">

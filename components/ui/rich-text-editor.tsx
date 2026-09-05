@@ -62,7 +62,7 @@ function ToolbarButton({
       title={title}
       aria-label={title}
       className={cn(
-        "flex size-9 shrink-0 items-center justify-center rounded-xl transition-all duration-150",
+        "flex size-9 shrink-0 items-center justify-center rounded-lg border border-transparent transition-all duration-150",
         active
           ? "bg-primary text-white shadow-sm"
           : "bg-background/70 text-muted hover:bg-primary-soft/40 hover:text-primary",
@@ -132,6 +132,10 @@ export function RichTextEditor({
         heading: { levels: [2, 3] },
         bulletList: { keepMarks: true },
         orderedList: { keepMarks: true },
+        // StarterKit in Tiptap 3 includes Underline. Keep the explicit
+        // extension below, but turn its bundled copy off to avoid duplicate
+        // extension names while preserving underline commands and content.
+        underline: false,
       }),
       Underline,
       Placeholder.configure({
@@ -170,10 +174,18 @@ export function RichTextEditor({
   // Update placeholder when prop changes
   useEffect(() => {
     if (!editor) return;
-    editor.extensionManager.extensions
-      .find((e) => e.name === "placeholder")
-      // @ts-expect-error tiptap storage
-      ?.options && (editor.extensionStorage["placeholder"].placeholder = placeholder);
+    const placeholderExtension = editor.extensionManager.extensions.find(
+      (extension) => extension.name === "placeholder",
+    );
+    if (placeholderExtension?.options) {
+      // Tiptap exposes extension storage as mutable runtime configuration.
+      const placeholderStorage = (
+        editor.extensionStorage as unknown as Record<string, { placeholder?: string }>
+      ).placeholder;
+      if (!placeholderStorage) return;
+      // eslint-disable-next-line react-hooks/immutability
+      placeholderStorage.placeholder = placeholder;
+    }
   }, [editor, placeholder]);
 
   const canUndo = editor?.can().undo() ?? false;
@@ -200,7 +212,7 @@ export function RichTextEditor({
         {/* ── Toolbar ── */}
         <div
           className={cn(
-            "flex flex-nowrap items-center gap-1.5 overflow-x-auto rounded-t-[1.5rem] border-b border-border bg-card/92 px-2 py-2 backdrop-blur-xl sm:flex-wrap",
+            "flex flex-nowrap items-center gap-1 overflow-x-auto rounded-t-[1.5rem] border-b border-border bg-card-soft/30 px-3 py-2 backdrop-blur-xl sm:flex-wrap sm:gap-1.5",
             stickyToolbar && "sticky top-20 z-20 shadow-[0_12px_40px_rgba(94,58,47,0.08)] sm:top-24",
           )}
         >

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getJalaliParts } from "@/lib/date";
+import { formatPersianNumber } from "@/lib/persian-numbers";
 
 const QUICK_LINKS = [
   { href: "/dashboard", label: "داشبورد" },
@@ -19,32 +21,34 @@ const MOOD_CHIPS = [
 ];
 
 export function SiteFooter() {
-  const year = new Date().getFullYear();
+  const { jy } = getJalaliParts(new Date());
 
   return (
-    <footer className="mt-auto border-t border-border bg-linear-to-b from-card-soft to-card">
-      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 py-10">
+    <footer className="relative mt-auto overflow-hidden border-t border-border bg-linear-to-b from-[#F3E8D8] via-card-soft to-card">
+      <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary-soft/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 bottom-0 size-64 rounded-full bg-gold/12 blur-3xl" />
+      <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Top row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 gap-8 pb-8 sm:grid-cols-2 lg:grid-cols-[1.15fr_0.8fr_1fr]">
           {/* Brand */}
           <div className="flex flex-col gap-3">
-            <Link href="/dashboard" className="inline-flex">
+            <Link href="/dashboard" className="inline-flex w-fit transition-transform hover:-translate-y-0.5">
               <Image
                 src="/logo.png"
                 alt="لوگوی خلوت"
-                width={140}
-                height={40}
-                className="h-9 w-auto object-contain"
+                width={190}
+                height={58}
+                className="h-14 w-auto object-contain"
               />
             </Link>
-            <p className="text-sm text-muted leading-relaxed max-w-xs">
+            <p className="max-w-xs text-sm leading-7 text-muted">
               خلوت، دفتر دیجیتال شخصی برای فکرها، یادداشت‌ها و جرقه‌های ذهنی.
             </p>
-            <div className="flex flex-wrap gap-2 mt-1">
+            <div className="mt-1 flex flex-wrap gap-2">
               {MOOD_CHIPS.map(({ label, cls }) => (
                 <span
                   key={label}
-                  className={`text-xs px-3 py-1 rounded-full font-medium ${cls}`}
+                  className={`rounded-full px-3 py-1 text-xs font-medium shadow-sm ${cls}`}
                 >
                   {label}
                 </span>
@@ -54,15 +58,15 @@ export function SiteFooter() {
 
           {/* Quick links */}
           <div>
-            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
+            <p className="mb-3 text-xs font-black tracking-wide text-primary-dark">
               دسترسی سریع
             </p>
-            <nav className="flex flex-col gap-1.5">
+            <nav className="grid grid-cols-2 gap-x-5 gap-y-2">
               {QUICK_LINKS.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
-                  className="text-sm text-muted hover:text-primary transition-colors duration-150"
+                  className="text-sm text-muted transition-colors duration-150 hover:text-primary"
                 >
                   {label}
                 </Link>
@@ -72,7 +76,7 @@ export function SiteFooter() {
 
           {/* About copy */}
           <div className="flex flex-col gap-3">
-            <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-0">
+            <p className="mb-0 text-xs font-black tracking-wide text-primary-dark">
               درباره
             </p>
             <p className="text-sm text-muted leading-relaxed">
@@ -86,12 +90,12 @@ export function SiteFooter() {
         </div>
 
         {/* Bottom line */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-6 border-t border-border">
+        <div className="flex flex-col items-center justify-between gap-3 border-t border-border/80 pt-5 sm:flex-row">
           <p className="text-xs text-muted">
             ساخته شده برای نوشتن آرام‌تر.
           </p>
-          <p className="text-xs text-muted opacity-70">
-            خلوت — {year}
+          <p className="rounded-full border border-border/80 bg-card/55 px-3 py-1 text-xs text-muted">
+            خلوت — {formatPersianNumber(jy)}
           </p>
         </div>
       </div>

@@ -39,7 +39,7 @@ export default async function SettingsLayout({
       userAvatarColor={user.avatarColor}
       isAdmin={isAdmin}
     >
-      <div className="relative">
+      <div className="relative min-w-0 overflow-x-clip">
         <div className="pointer-events-none absolute -top-12 right-0 size-80 rounded-full bg-primary-soft/22 blur-3xl" />
         <div className="pointer-events-none absolute left-0 top-40 size-80 rounded-full bg-gold/12 blur-3xl" />
         <div className="pointer-events-none absolute bottom-20 right-1/3 size-72 rounded-full bg-card-soft/45 blur-3xl" />

@@ -80,7 +80,7 @@ export default async function EditEntryPage({ params }: Props) {
         {/* Main Layout */}
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           {/* Sidebar */}
-          <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
+          <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
             <section className="overflow-hidden rounded-4xl border border-border bg-card p-4 shadow-[0_18px_70px_rgba(94,58,47,0.06)]">
               <div className="mb-4 flex items-center gap-3">
                 <span className="flex size-10 items-center justify-center rounded-2xl bg-primary-soft/55 text-primary-dark">

@@ -59,6 +59,11 @@ export function CustomSelect({
     setOpen((o) => !o);
   }
 
+  function selectOption(nextValue: string) {
+    onValueChange(nextValue);
+    setOpen(false);
+  }
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (disabled) return;
     if (e.key === "Enter" || e.key === " ") {
@@ -67,8 +72,7 @@ export function CustomSelect({
         setOpen(true);
         setHighlighted(options.findIndex((o) => o.value === value));
       } else if (highlighted >= 0 && options[highlighted]) {
-        onValueChange(options[highlighted].value);
-        setOpen(false);
+        selectOption(options[highlighted].value);
       }
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -148,33 +152,35 @@ export function CustomSelect({
                   role="option"
                   aria-selected={isSelected}
                   onMouseEnter={() => setHighlighted(i)}
-                  onClick={() => {
-                    onValueChange(option.value);
-                    setOpen(false);
-                  }}
-                  className={cn(
-                    "flex items-center justify-between px-4 py-2.5 cursor-pointer text-sm transition-colors duration-100",
-                    isSelected && "bg-primary-soft text-primary-dark",
-                    isHighlighted &&
-                      !isSelected &&
-                      "bg-card-soft text-foreground",
-                    !isSelected && !isHighlighted && "text-foreground"
-                  )}
                 >
-                  <div className="flex items-center gap-2">
-                    {option.icon && <span>{option.icon}</span>}
-                    <div>
-                      <div>{option.label}</div>
-                      {option.description && (
-                        <div className="text-xs text-muted">
-                          {option.description}
-                        </div>
-                      )}
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => selectOption(option.value)}
+                    className={cn(
+                      "flex w-full items-center justify-between px-4 py-2.5 cursor-pointer text-sm text-right transition-colors duration-100",
+                      isSelected && "bg-primary-soft text-primary-dark",
+                      isHighlighted &&
+                        !isSelected &&
+                          "bg-card-soft text-foreground",
+                      !isSelected && !isHighlighted && "text-foreground",
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {option.icon && <span>{option.icon}</span>}
+                      <div>
+                        <div>{option.label}</div>
+                        {option.description && (
+                          <div className="text-xs text-muted">
+                            {option.description}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  {isSelected && (
-                    <Check size={14} className="text-primary shrink-0" />
-                  )}
+                    {isSelected && (
+                      <Check size={14} className="text-primary shrink-0" />
+                    )}
+                  </button>
                 </li>
               );
             })}
@@ -185,4 +191,3 @@ export function CustomSelect({
     </div>
   );
 }
-

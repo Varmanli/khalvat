@@ -28,7 +28,7 @@ export function PinToggleButton({ entryId, isPinned }: PinToggleButtonProps) {
       });
       const json = await res.json();
       if (json.ok) {
-        toast.success(isPinned ? "از پین خارج شد." : "پین شد.");
+        toast.success(isPinned ? "از سنجاق خارج شد." : "سنجاق شد.");
         router.refresh();
       } else {
         toast.error(json.error?.message ?? "خطایی رخ داد.");
@@ -42,7 +42,7 @@ export function PinToggleButton({ entryId, isPinned }: PinToggleButtonProps) {
     <button
       onClick={handleClick}
       disabled={loading}
-      title={isPinned ? "خارج کردن از پین" : "پین کردن"}
+      title={isPinned ? "خارج کردن از سنجاق" : "سنجاق کردن"}
       className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-150 ${
         isPinned
           ? "bg-gold text-white"
@@ -53,4 +53,3 @@ export function PinToggleButton({ entryId, isPinned }: PinToggleButtonProps) {
     </button>
   );
 }
-

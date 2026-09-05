@@ -50,7 +50,7 @@ export default async function EntriesPage({ searchParams }: Props) {
 
   return (
     <AppShell>
-      <div className="relative">
+      <div className="relative overflow-x-clip">
         <div className="pointer-events-none absolute -top-10 left-0 size-72 rounded-full bg-primary-soft/25 blur-3xl" />
         <div className="pointer-events-none absolute right-10 top-40 size-80 rounded-full bg-gold/10 blur-3xl" />
 
@@ -105,7 +105,7 @@ export default async function EntriesPage({ searchParams }: Props) {
 
                 <ArchiveStat
                   icon={<PenLine className="size-4" />}
-                  label="پین‌شده‌ها"
+                  label="سنجاق شده‌ها"
                   value={`${formatPersianNumber(pinnedCount)} نوشته`}
                 />
               </div>
@@ -124,14 +124,10 @@ export default async function EntriesPage({ searchParams }: Props) {
                   )}
                 </span>
 
-                <div>
+                <div className="flex flex-col gap-1 items-center justify-center">
                   <h2 className="text-sm font-black text-foreground">
                     جستجو و فیلتر نوشته‌ها
                   </h2>
-                  <p className="mt-1 text-xs leading-5 text-muted">
-                    با عنوان، متن، نوع، حال‌وهوا، وضعیت یا تگ، صفحه‌ای که
-                    می‌خواهی را پیدا کن.
-                  </p>
                 </div>
               </div>
 
@@ -189,7 +185,10 @@ export default async function EntriesPage({ searchParams }: Props) {
             </div>
 
             {entries.length === 0 ? (
-              <EmptyState hasFilters={hasFilters} hasCategoryFilter={Boolean(categoryId)} />
+              <EmptyState
+                hasFilters={hasFilters}
+                hasCategoryFilter={Boolean(categoryId)}
+              />
             ) : (
               <div className="grid gap-3">
                 {entries.map((entry) => (

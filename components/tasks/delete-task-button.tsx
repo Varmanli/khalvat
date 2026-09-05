@@ -39,9 +39,9 @@ export function DeleteTaskButton({
 
       if (redirectTo) {
         router.push(redirectTo);
+      } else {
+        router.refresh();
       }
-
-      router.refresh();
     } catch {
       toast.error("ارتباط با سرور برقرار نشد.");
     } finally {

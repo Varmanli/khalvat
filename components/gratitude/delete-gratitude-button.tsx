@@ -32,7 +32,6 @@ export function DeleteGratitudeButton({ date }: DeleteGratitudeButtonProps) {
       toast.success("شکرگزاری حذف شد.");
       setOpen(false);
       router.push("/gratitude");
-      router.refresh();
     } catch {
       toast.error("ارتباط با سرور برقرار نشد.");
     } finally {

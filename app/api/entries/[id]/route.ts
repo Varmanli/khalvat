@@ -64,7 +64,15 @@ export async function PATCH(request: Request, { params }: Params) {
     }
 
     return NextResponse.json({ ok: true, data: entry });
-  } catch {
+  } catch (error) {
+    console.error("Entry reminder update failed", {
+      operation: "updateEntry",
+      entryId: await params.then(({ id }) => id),
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      postgresCode: (error as { code?: string })?.code,
+    });
     return NextResponse.json(
       { ok: false, error: { message: "خطایی رخ داد. دوباره تلاش کن." } },
       { status: 500 }
