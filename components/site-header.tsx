@@ -153,7 +153,7 @@ export function SiteHeader({
           className="mb-5 mt-1 flex items-center justify-center py-2"
         >
           <Image
-            src="/logo.png"
+            src="/khalvat-logo.png"
             alt="خلوت"
             width={360}
             height={120}
@@ -255,7 +255,7 @@ export function SiteHeader({
 
           <Link href="/today" className="flex items-center">
             <Image
-              src="/logo.png"
+              src="/khalvat-logo.png"
               alt="خلوت"
               width={140}
               height={48}
@@ -281,7 +281,7 @@ export function SiteHeader({
             <div className="mb-4 flex items-center justify-between border-b border-border/50 pb-3">
               <Link href="/today" onClick={() => setOpen(false)}>
                 <Image
-                  src="/logo.png"
+                  src="/khalvat-logo.png"
                   alt="خلوت"
                   width={140}
                   height={48}

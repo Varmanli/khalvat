@@ -4,16 +4,16 @@ import sharp from "sharp";
 
 const root = process.cwd();
 // Keep every installable icon derived from the canonical square favicon.
-const sourcePath = path.join(root, "public", "favicon.png");
+const sourcePath = path.join(root, "public", "khalvat-favicon.png");
 
 const outputs = [
-  { file: ["public", "apple-touch-icon.png"], size: 180, inset: 0.14, background: "#ffffff" },
-  { file: ["public", "icons", "apple-touch-icon.png"], size: 180, inset: 0.14, background: "#ffffff" },
-  { file: ["public", "icons", "favicon-64.png"], size: 64, inset: 0.14, background: "#ffffff" },
-  { file: ["public", "icons", "icon-192.png"], size: 192, inset: 0.14, background: "#ffffff" },
-  { file: ["public", "icons", "icon-512.png"], size: 512, inset: 0.14, background: "#ffffff" },
-  { file: ["public", "icons", "icon-maskable-192.png"], size: 192, inset: 0.22, background: "#ffffff" },
-  { file: ["public", "icons", "icon-maskable-512.png"], size: 512, inset: 0.22, background: "#ffffff" },
+  { file: ["public", "khalvat-apple-touch-icon.png"], size: 180, inset: 0.14, background: "#ffffff" },
+  { file: ["public", "icons", "khalvat-apple-touch-icon.png"], size: 180, inset: 0.14, background: "#ffffff" },
+  { file: ["public", "icons", "khalvat-favicon-64.png"], size: 64, inset: 0.14, background: "#ffffff" },
+  { file: ["public", "icons", "khalvat-icon-192.png"], size: 192, inset: 0.14, background: "#ffffff" },
+  { file: ["public", "icons", "khalvat-icon-512.png"], size: 512, inset: 0.14, background: "#ffffff" },
+  { file: ["public", "icons", "khalvat-icon-maskable-192.png"], size: 192, inset: 0.22, background: "#ffffff" },
+  { file: ["public", "icons", "khalvat-icon-maskable-512.png"], size: 512, inset: 0.22, background: "#ffffff" },
 ];
 
 async function ensureDirectory(filePath) {
@@ -73,7 +73,7 @@ async function main() {
       .toFile(destination);
   }
 
-  console.log("PWA icons generated from public/favicon.png");
+  console.log("PWA icons generated from public/khalvat-favicon.png");
 }
 
 main().catch((error) => {

@@ -18,9 +18,9 @@ const STATIC_CACHE = "khalvat-static-__BUILD_VERSION__";
 const OFFLINE_CACHE = "khalvat-offline-__BUILD_VERSION__";
 const OFFLINE_URL = "/offline";
 const PUBLIC_ASSETS = [
-  "/manifest.webmanifest", "/favicon.png", "/apple-touch-icon.png",
-  "/icons/icon-192.png", "/icons/icon-512.png",
-  "/icons/icon-maskable-192.png", "/icons/icon-maskable-512.png",
+  "/manifest.webmanifest", "/khalvat-favicon.png", "/khalvat-apple-touch-icon.png",
+  "/icons/khalvat-icon-192.png", "/icons/khalvat-icon-512.png",
+  "/icons/khalvat-icon-maskable-192.png", "/icons/khalvat-icon-maskable-512.png",
 ];
 
 self.addEventListener("install", event => {
@@ -54,7 +54,7 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("push", event => {
   const payload = event.data ? event.data.json() : {};
-  event.waitUntil(self.registration.showNotification(payload.title || "خلوت", { body: payload.body || "", icon: payload.icon || "/icons/icon-192.png", badge: payload.badge || "/icons/icon-192.png", tag: payload.tag, data: { targetUrl: payload.targetUrl || "/today" }, dir: "rtl", lang: "fa" }));
+  event.waitUntil(self.registration.showNotification(payload.title || "خلوت", { body: payload.body || "", icon: payload.icon || "/icons/khalvat-icon-192.png", badge: payload.badge || "/icons/khalvat-icon-192.png", tag: payload.tag, data: { targetUrl: payload.targetUrl || "/today" }, dir: "rtl", lang: "fa" }));
 });
 self.addEventListener("notificationclick", event => {
   event.notification.close(); const target = new URL(event.notification.data?.targetUrl || "/today", self.location.origin).href;

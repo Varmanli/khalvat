@@ -79,7 +79,7 @@ export default function RegisterPage() {
             {/* Brand */}
             <Link href="/" className="mb-9 inline-flex">
               <Image
-                src="/logo.png"
+                src="/khalvat-logo.png"
                 alt="خلوت"
                 width={320}
                 height={110}
