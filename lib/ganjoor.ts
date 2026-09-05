@@ -1,4 +1,5 @@
 import type { DailyVerse } from "@/lib/poem-types";
+import { stripLeadingPoemTitle } from "@/lib/poem-import";
 
 export interface GanjoorFetchedPoem extends DailyVerse {
   ganjoorPoemId?: number;
@@ -63,7 +64,10 @@ export async function fetchGanjoorRandomPoem(
     if (!res.ok) return null;
 
     const data = await res.json();
-    const plainText = compactWhitespace(String(data?.plainText ?? ""));
+    const plainText = stripLeadingPoemTitle(
+      compactWhitespace(String(data?.plainText ?? "")),
+      data?.title,
+    );
     if (!plainText) return null;
 
     const poetName =

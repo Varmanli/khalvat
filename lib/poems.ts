@@ -7,6 +7,7 @@ import {
   buildPoemExcerpt,
   buildPoemTextHash,
   fetchGanjoorPoemById,
+  stripLeadingPoemTitle,
 } from "@/lib/poem-import";
 import type { DailyVerse } from "@/lib/poem-types";
 
@@ -26,10 +27,12 @@ function normalizePoemText(text: string): string {
 }
 
 function poemToVerse(poem: typeof poems.$inferSelect): DailyVerse {
+  const text = stripLeadingPoemTitle(poem.plainText, poem.title);
+
   return {
     id: poem.id,
-    text: poem.plainText,
-    excerpt: poem.excerpt ?? undefined,
+    text,
+    excerpt: buildPoemExcerpt(text),
     poet: poem.poetName,
     source: poem.title ?? undefined,
     url: poem.sourceUrl ?? undefined,
@@ -57,7 +60,10 @@ async function getPoemByTextHash(textHash: string) {
 }
 
 export async function cacheGanjoorPoem(input: GanjoorFetchedPoem) {
-  const normalizedText = normalizePoemText(input.text);
+  const normalizedText = stripLeadingPoemTitle(
+    normalizePoemText(input.text),
+    input.title,
+  );
   const textHash = buildPoemTextHash(normalizedText);
 
   const existing =

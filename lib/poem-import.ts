@@ -41,6 +41,39 @@ function normalizePoemText(text: string): string {
     .trim();
 }
 
+function normalizePoemLine(text: string): string {
+  return text.replace(/[ \t]+/g, " ").trim();
+}
+
+/**
+ * Ganjoor includes the poem title as the first line in some records. Keep the
+ * title in its own metadata field so it is not rendered as the first verse.
+ */
+export function stripLeadingPoemTitle(text: string, title?: string | null): string {
+  const normalizedText = normalizePoemText(text);
+  const firstLine = normalizedText.split("\n")[0] ?? "";
+  const firstLineKey = normalizePoemLine(firstLine);
+  const titleKey = normalizePoemLine(title ?? "");
+
+  if (!firstLineKey || !titleKey) return normalizedText;
+
+  const titleVariants = [
+    titleKey,
+    titleKey.split("»").at(-1)?.trim() ?? titleKey,
+  ].filter(Boolean);
+
+  const isTitleLine = titleVariants.some(
+    (candidate) =>
+      candidate === firstLineKey ||
+      (candidate.length >= 8 &&
+        (candidate.startsWith(firstLineKey) || firstLineKey.startsWith(candidate))),
+  );
+
+  return isTitleLine
+    ? normalizedText.split("\n").slice(1).join("\n").trim()
+    : normalizedText;
+}
+
 export function buildPoemTextHash(text: string): string {
   return createHash("sha256").update(normalizePoemText(text)).digest("hex");
 }
@@ -139,7 +172,10 @@ export async function fetchGanjoorPoemById(poemId: number): Promise<GanjoorPoemI
     plainText?: string | null;
   }>(`/api/ganjoor/poem/${poemId}`);
 
-  const plainText = normalizePoemText(String(data?.plainText ?? ""));
+  const plainText = stripLeadingPoemTitle(
+    String(data?.plainText ?? ""),
+    data?.title,
+  );
   if (!plainText) return null;
 
   return {
