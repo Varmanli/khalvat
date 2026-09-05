@@ -255,7 +255,7 @@ export function SiteHeader({
 
           <Link href="/today" className="flex items-center">
             <Image
-              src="/logo.png"
+              src="/Logo.png"
               alt="خلوت"
               width={140}
               height={48}
@@ -281,7 +281,7 @@ export function SiteHeader({
             <div className="mb-4 flex items-center justify-between border-b border-border/50 pb-3">
               <Link href="/today" onClick={() => setOpen(false)}>
                 <Image
-                  src="/logo.png"
+                  src="/Logo.png"
                   alt="خلوت"
                   width={140}
                   height={48}

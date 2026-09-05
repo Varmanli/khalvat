@@ -3,10 +3,10 @@ import path from "node:path";
 import sharp from "sharp";
 
 const root = process.cwd();
-const sourcePath = path.join(root, "public", "icons", "logo.jpg");
+// Keep every installable icon derived from the canonical square favicon.
+const sourcePath = path.join(root, "public", "favicon.png");
 
 const outputs = [
-  { file: ["public", "favicon.png"], size: 64, inset: 0.14, background: "#ffffff" },
   { file: ["public", "apple-touch-icon.png"], size: 180, inset: 0.14, background: "#ffffff" },
   { file: ["public", "icons", "apple-touch-icon.png"], size: 180, inset: 0.14, background: "#ffffff" },
   { file: ["public", "icons", "favicon-64.png"], size: 64, inset: 0.14, background: "#ffffff" },
@@ -73,7 +73,7 @@ async function main() {
       .toFile(destination);
   }
 
-  console.log("PWA icons generated from public/icons/logo.jpg");
+  console.log("PWA icons generated from public/favicon.png");
 }
 
 main().catch((error) => {
