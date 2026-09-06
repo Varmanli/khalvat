@@ -60,6 +60,7 @@ export const users = pgTable("users", {
   avatarColor: text("avatar_color").default("#8A5A44"),
   bio: text("bio"),
   role: text("role").notNull().default("user"),
+  notificationOnboardingSeen: boolean("notification_onboarding_seen").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

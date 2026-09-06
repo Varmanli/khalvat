@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "sonner";
 import { PwaBootstrap } from "@/components/pwa/pwa-bootstrap";
+import { NotificationOnboarding } from "@/components/notifications/notification-onboarding";
 import { developmentPwaCleanup } from "@/lib/pwa-development";
 import "./globals.css";
 
@@ -106,6 +107,7 @@ export default function RootLayout({
       <body>
         {children}
         <PwaBootstrap />
+        <NotificationOnboarding />
         <Toaster
           position="top-center"
           toastOptions={{
