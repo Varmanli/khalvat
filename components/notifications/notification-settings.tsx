@@ -7,6 +7,20 @@ function keyToBytes(value: string) { const pad = "=".repeat((4 - value.length % 
 export function NotificationSettings() { const [prefs, setPrefs] = useState<Prefs>({}); const [state, setState] = useState("loading");
   useEffect(() => { fetch("/api/notifications/preferences").then(r => r.json()).then(r => setPrefs(r.data ?? {})).finally(() => setState("Notification" in window ? Notification.permission : "unsupported")); }, []);
   async function save(next: Prefs) { setPrefs(next); await fetch("/api/notifications/preferences", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(next) }); }
-  async function enable() { if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) return setState("unsupported"); const permission = await Notification.requestPermission(); setState(permission); if (permission !== "granted") return; try { const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyToBytes(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!) }); await fetch("/api/notifications/subscription", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) }); toast.success("اعلان‌ها برای این دستگاه فعال شد."); } catch { toast.error("فعال‌سازی اعلان‌ها کامل نشد."); } }
+  async function enable() {
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) return setState("unsupported");
+    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!publicKey) return toast.error("کلید اعلان‌ها روی سرور تنظیم نشده است.");
+    const permission = await Notification.requestPermission(); setState(permission);
+    if (permission !== "granted") return;
+    try {
+      const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription() ?? await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyToBytes(publicKey) });
+      await fetch("/api/notifications/subscription", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) });
+      await save({ ...prefs, enabled: true });
+      toast.success("اعلان‌ها برای این دستگاه فعال شد.");
+    } catch { toast.error("فعال‌سازی اعلان‌ها کامل نشد."); }
+  }
   const toggle = (key: string, label: string) => <label className="flex items-center justify-between rounded-2xl border border-border bg-background/65 px-4 py-3"><span className="text-sm font-bold text-foreground">{label}</span><input aria-label={label} type="checkbox" checked={Boolean(prefs[key])} onChange={e => void save({ ...prefs, [key]: e.target.checked })} className="size-5 accent-primary" /></label>;
   return <section className="rounded-[2.35rem] border border-border bg-card p-5 shadow-[0_18px_70px_rgba(94,58,47,.06)] sm:p-7"><div className="flex items-start gap-3"><span className="flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-primary"><Bell className="size-5" /></span><div><h1 className="text-2xl font-black">اعلان‌های خلوت</h1><p className="mt-1 text-sm leading-7 text-muted">خلوت فقط سر وقت چیزهای مهم را یادت می‌اندازد.</p></div></div><div className="mt-6 rounded-2xl border border-border bg-background/65 p-4"><div className="flex items-center justify-between gap-3"><div><p className="font-black">اعلان این دستگاه</p><p className="mt-1 text-xs text-muted">{state === "granted" ? "روی این دستگاه فعال است" : state === "denied" ? "اجازه اعلان در مرورگر غیرفعال است" : state === "unsupported" ? "مرورگر شما پشتیبانی نمی‌کند" : "با انتخاب خودت فعال می‌شود"}</p></div>{state === "granted" ? <CheckCircle2 className="text-olive" /> : <button onClick={() => void enable()} className="rounded-2xl bg-primary px-4 py-2.5 text-xs font-black text-white">فعال کردن اعلان‌ها</button>}</div></div><div className="mt-5 space-y-3">{toggle("enabled", "اعلان‌های خلوت")}{toggle("moodEnabled", "حال‌نگار")}{toggle("gratitudeEnabled", "شکرگزاری")}{toggle("habitsEnabled", "عادت‌ها")}{toggle("tasksEnabled", "وظایف زمان‌دار")}{toggle("eventsEnabled", "رویدادها")}</div></section>; }

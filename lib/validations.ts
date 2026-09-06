@@ -190,6 +190,7 @@ export const habitSchema = z
     reminderTime: z
       .string()
       .regex(/^\d{2}:\d{2}$/, "فرمت زمان باید HH:mm باشد")
+      .or(z.literal(""))
       .optional()
       .nullable(),
     isActive: z.boolean().optional().default(true),

@@ -5,7 +5,7 @@ import type { HabitInput, HabitLogInput, HabitCategoryInput } from "@/lib/valida
 import type { Habit, HabitLog, HabitCategory } from "@/db/schema";
 import { isHabitScheduledForDate, toDateString } from "@/lib/habit-utils";
 import { daysInJalaliMonth, jalaliToGregorianIso } from "@/lib/date";
-import { syncEntityNotification } from "@/lib/notifications";
+import { getNotificationPreferences, localDateTimeToUtc, syncEntityNotification } from "@/lib/notifications";
 import { todayKey } from "@/lib/planner-dates";
 
 export { isHabitScheduledForDate } from "@/lib/habit-utils";
@@ -302,9 +302,10 @@ export async function createHabit(userId: string, data: HabitInput): Promise<Hab
     .returning();
 
   const result = await attachCategoriesToHabits([rows[0]]);
-  if (rows[0].reminderTime && rows[0].isActive) {
+  const prefs = await getNotificationPreferences(userId);
+  if (rows[0].reminderTime && rows[0].isActive && prefs?.enabled !== false && prefs?.habitsEnabled !== false) {
     const today = toDateString(new Date());
-    const when = new Date(`${today}T${rows[0].reminderTime}:00`);
+    const when = localDateTimeToUtc(today, rows[0].reminderTime, "Asia/Tehran");
     await syncEntityNotification("habit", userId, rows[0].id, { title: "وقت عادتت رسیده", body: rows[0].title, targetUrl: `/habits/${rows[0].id}`, scheduledFor: when, recurrence: "daily" });
   }
   return result[0];
@@ -351,7 +352,8 @@ export async function updateHabit(
   if (!rows[0]) return null;
   const result = await attachCategoriesToHabits([rows[0]]);
   await syncEntityNotification("habit", userId, habitId, { title: "", targetUrl: `/habits/${habitId}`, scheduledFor: null });
-  if (rows[0].reminderTime && rows[0].isActive) await syncEntityNotification("habit", userId, habitId, { title: "وقت عادتت رسیده", body: rows[0].title, targetUrl: `/habits/${habitId}`, scheduledFor: new Date(`${toDateString(new Date())}T${rows[0].reminderTime}:00`), recurrence: "daily" });
+  const prefs = await getNotificationPreferences(userId);
+  if (rows[0].reminderTime && rows[0].isActive && prefs?.enabled !== false && prefs?.habitsEnabled !== false) await syncEntityNotification("habit", userId, habitId, { title: "وقت عادتت رسیده", body: rows[0].title, targetUrl: `/habits/${habitId}`, scheduledFor: localDateTimeToUtc(toDateString(new Date()), rows[0].reminderTime, "Asia/Tehran"), recurrence: "daily" });
   return result[0] ?? null;
 }
 

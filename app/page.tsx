@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { khalvatLogo } from "@/lib/branding";
+import { getSession } from "@/lib/auth";
 
 const siteUrl = process.env.APP_URL || "http://localhost:3000";
 
@@ -44,7 +46,10 @@ import {
 
 import { PublicHeader } from "@/components/public-header";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  if (session) redirect("/dashboard");
+
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
       <script

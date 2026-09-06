@@ -62,8 +62,12 @@ export async function DailyWorkspace({
   ]);
 
   const completedCount = tasks.filter((task) => task.status === "done").length;
-
-  const remainingCount = tasks.length - completedCount;
+  const completedHabitCount = habits.filter(
+    (habit) => habit.todayLog?.status === "done",
+  ).length;
+  const totalCount = tasks.length + habits.length;
+  const completedTotalCount = completedCount + completedHabitCount;
+  const remainingCount = totalCount - completedTotalCount;
 
   const eventCount = items.filter((item) => item.kind === "event").length;
 
@@ -100,9 +104,9 @@ export async function DailyWorkspace({
           weekday={weekday}
           isToday={isToday}
           greeting={greeting}
-          tasksCount={tasks.length}
+          tasksCount={totalCount}
           remainingCount={remainingCount}
-          completedCount={completedCount}
+          completedCount={completedTotalCount}
           eventCount={eventCount}
           reminderCount={reminderCount}
           plannerOnly={plannerOnly}
@@ -124,9 +128,9 @@ export async function DailyWorkspace({
             <aside className="order-2 min-w-0 space-y-4 xl:order-1 xl:sticky xl:top-28 xl:self-start">
               <DaySummary
                 date={date}
-                tasksCount={tasks.length}
+                tasksCount={totalCount}
                 remainingCount={remainingCount}
-                completedCount={completedCount}
+                completedCount={completedTotalCount}
                 eventCount={eventCount}
                 reminderCount={reminderCount}
               />
@@ -440,7 +444,7 @@ function DayHero({
             </h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted sm:text-sm">
-              <DayMeta value={remainingCount} label="کار باقی‌مانده" />
+            <DayMeta value={remainingCount} label="باقی‌مانده" />
 
               <DayMeta value={eventCount} label="رویداد" />
 
@@ -664,7 +668,7 @@ function DaySummary({
         <div className="space-y-2">
           <SummaryRow
             icon={<CheckSquare className="size-3.5" />}
-            label="کارهای باقی‌مانده"
+            label="کارها و عادت‌های باقی‌مانده"
             value={remainingCount}
           />
 
@@ -690,7 +694,7 @@ function DaySummary({
         {tasksCount > 0 && (
           <div className="mt-5 border-t border-border pt-4">
             <div className="mb-2 flex items-center justify-between text-[10px] font-bold text-muted">
-              <span>پیشرفت امروز</span>
+              <span>پیشرفت کارها و عادت‌ها</span>
 
               <span>
                 {toPersianDigits(completedCount)} از{" "}
