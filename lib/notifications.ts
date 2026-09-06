@@ -21,7 +21,7 @@ export function localDateTimeToUtc(date: string, time: string, timezone: string)
 }
 export function localDateInTimezone(at: Date, timezone: string) { return new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(at); }
 
-export async function getNotificationPreferences(userId: string) {
+export async function getNotificationPreferences(userId: string): Promise<typeof notificationPreferences.$inferSelect | null> {
   const [prefs] = await db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId));
   return prefs ?? null;
 }
@@ -33,13 +33,29 @@ export async function updatePreferences(userId: string, data: Partial<typeof not
   await ensureDailySchedules(userId);
 }
 
+function isNotificationKindEnabled(
+  prefs: Awaited<ReturnType<typeof getNotificationPreferences>>,
+  kind: "mood" | "gratitude" | "habit" | "task" | "event" | "manual",
+) {
+  if (prefs?.enabled === false) return false;
+  const setting = {
+    mood: prefs?.moodEnabled,
+    gratitude: prefs?.gratitudeEnabled,
+    habit: prefs?.habitsEnabled,
+    task: prefs?.tasksEnabled,
+    event: prefs?.eventsEnabled,
+    manual: prefs?.manualEnabled,
+  }[kind];
+  return setting !== false;
+}
+
 export async function ensureDailySchedules(userId: string) {
   const [prefs, userPrefs] = await Promise.all([getNotificationPreferences(userId), db.select({ timezone: userPreferences.timezone }).from(userPreferences).where(eq(userPreferences.userId, userId)).limit(1)]);
   const timezone = userPrefs[0]?.timezone ?? "Asia/Tehran";
   const now = new Date(); const date = localDateInTimezone(now, timezone);
   const specs = [
-    ["mood", prefs?.moodEnabled ?? true, prefs?.moodTime ?? "21:00", "حال امروزت چطوره؟", "چند ثانیه برای حال‌نگار وقت بذار.", "/check-ins"],
-    ["gratitude", prefs?.gratitudeEnabled ?? true, prefs?.gratitudeTime ?? "22:00", "یه لحظه برای شکرگزاری", "امروز چه چیز کوچیکی حالت رو بهتر کرد؟", "/gratitude"],
+    ["mood", isNotificationKindEnabled(prefs, "mood"), prefs?.moodTime ?? "21:00", "حال امروزت چطوره؟", "چند ثانیه برای حال‌نگار وقت بذار.", "/check-ins"],
+    ["gratitude", isNotificationKindEnabled(prefs, "gratitude"), prefs?.gratitudeTime ?? "22:00", "یه لحظه برای شکرگزاری", "امروز چه چیز کوچیکی حالت رو بهتر کرد؟", "/gratitude"],
   ] as const;
   for (const [kind, enabled, time, title, body, targetUrl] of specs) {
     const when = localDateTimeToUtc(date, time, timezone); if (when <= now) when.setUTCDate(when.getUTCDate() + 1);
@@ -51,12 +67,14 @@ export async function ensureDailySchedules(userId: string) {
 export async function syncEntityNotification(kind: "task" | "event" | "habit" | "manual", userId: string, entityId: string, detail: { title: string; body?: string; targetUrl: string; scheduledFor: Date | null; recurrence?: string }) {
   const condition = and(eq(notificationSchedules.userId, userId), eq(notificationSchedules.entityId, entityId), eq(notificationSchedules.kind, kind));
   const [existing] = await db.select({ id: notificationSchedules.id }).from(notificationSchedules).where(condition).limit(1);
-  if (!detail.scheduledFor) {
+  const prefs = detail.scheduledFor ? await getNotificationPreferences(userId) : null;
+  const scheduledFor = detail.scheduledFor && isNotificationKindEnabled(prefs, kind) ? detail.scheduledFor : null;
+  if (!scheduledFor) {
     if (existing) await db.update(notificationSchedules).set({ enabled: false, cancelledAt: new Date(), updatedAt: new Date() }).where(eq(notificationSchedules.id, existing.id));
     return;
   }
-  if (Number.isNaN(detail.scheduledFor.getTime())) throw new Error("Notification schedule received an invalid timestamp");
-  const values = { title: detail.title, body: detail.body ?? detail.title, targetUrl: detail.targetUrl, scheduledFor: detail.scheduledFor, recurrence: detail.recurrence ?? "once", enabled: true, cancelledAt: null, updatedAt: new Date() };
+  if (Number.isNaN(scheduledFor.getTime())) throw new Error("Notification schedule received an invalid timestamp");
+  const values = { title: detail.title, body: detail.body ?? detail.title, targetUrl: detail.targetUrl, scheduledFor, recurrence: detail.recurrence ?? "once", enabled: true, cancelledAt: null, updatedAt: new Date() };
   if (existing) {
     await db.update(notificationSchedules).set(values).where(eq(notificationSchedules.id, existing.id));
   } else {
@@ -81,11 +99,14 @@ export async function processDueNotifications(now = new Date()) {
   let processed = 0;
   for (const schedule of due) {
     const occurrenceKey = `${schedule.id}:${schedule.scheduledFor.toISOString()}`;
-    const claimed = await db.insert(notificationDeliveries).values({ scheduleId: schedule.id, userId: schedule.userId, occurrenceKey, title: schedule.title, body: schedule.body, targetUrl: schedule.targetUrl, status: "processing", attempts: 1 }).onConflictDoNothing().returning();
+    const claimed = await db.insert(notificationDeliveries).values({ scheduleId: schedule.id, userId: schedule.userId, occurrenceKey, title: schedule.title, body: schedule.kind === "manual" ? "" : schedule.body, targetUrl: schedule.targetUrl, status: "processing", attempts: 1 }).onConflictDoNothing().returning();
     if (!claimed[0]) continue; processed++;
-    let status: "sent" | "failed" = "sent", reason: string | null = null;
+    const prefs = await getNotificationPreferences(schedule.userId);
+    const deliveryAllowed = isNotificationKindEnabled(prefs, schedule.kind);
+    let status: "sent" | "failed" | "skipped" = deliveryAllowed ? "sent" : "skipped", reason: string | null = deliveryAllowed ? null : "disabled in notification preferences";
     const subscriptions = await db.select().from(notificationSubscriptions).where(and(eq(notificationSubscriptions.userId, schedule.userId), eq(notificationSubscriptions.active, true)));
-    for (const sub of subscriptions) try { if (vapidReady()) await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, JSON.stringify({ title: schedule.title, body: schedule.body, icon: "/icon.png", badge: "/icon.png", targetUrl: schedule.targetUrl, tag: occurrenceKey })); } catch (error) { const code = (error as { statusCode?: number }).statusCode; if (code === 404 || code === 410) await db.update(notificationSubscriptions).set({ active: false }).where(eq(notificationSubscriptions.id, sub.id)); else { status = "failed"; reason = "push delivery failed"; } }
+    if (deliveryAllowed && !vapidReady()) { status = "failed"; reason = "VAPID configuration missing"; }
+    for (const sub of deliveryAllowed && vapidReady() ? subscriptions : []) try { if (vapidReady()) await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, JSON.stringify({ title: schedule.title, body: schedule.kind === "manual" ? "" : schedule.body, icon: "/icon.png", badge: "/icon.png", targetUrl: schedule.targetUrl, tag: occurrenceKey })); } catch (error) { const code = (error as { statusCode?: number }).statusCode; if (code === 404 || code === 410) await db.update(notificationSubscriptions).set({ active: false }).where(eq(notificationSubscriptions.id, sub.id)); else { status = "failed"; reason = "push delivery failed"; } }
     await db.update(notificationDeliveries).set({ status, sentAt: status === "sent" ? new Date() : null, failureReason: reason }).where(eq(notificationDeliveries.id, claimed[0].id));
     if (schedule.recurrence === "daily") { const next = new Date(schedule.scheduledFor); next.setUTCDate(next.getUTCDate() + 1); await db.update(notificationSchedules).set({ scheduledFor: next, updatedAt: new Date() }).where(eq(notificationSchedules.id, schedule.id)); } else await db.update(notificationSchedules).set({ enabled: false, updatedAt: new Date() }).where(eq(notificationSchedules.id, schedule.id));
   } return { processed };

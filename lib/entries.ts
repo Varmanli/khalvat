@@ -173,7 +173,7 @@ export async function createEntry(
     .returning();
 
   const entry = rows[0];
-  await syncEntityNotification("manual", userId, entry.id, { title: entry.title, body: entry.content.slice(0, 140), targetUrl: `/entries/${entry.id}`, scheduledFor: entry.reminderAt });
+  await syncEntityNotification("manual", userId, entry.id, { title: entry.title, body: "", targetUrl: `/entries/${entry.id}`, scheduledFor: entry.reminderAt });
   const tagNames = parseTagsInput(data.tags ?? "");
   await syncEntryTags(userId, entry.id, tagNames);
 
@@ -221,7 +221,7 @@ export async function updateEntry(
 
   if (!rows[0]) return null;
   const entry = rows[0];
-  await syncEntityNotification("manual", userId, entry.id, { title: entry.title, body: entry.content.slice(0, 140), targetUrl: `/entries/${entry.id}`, scheduledFor: entry.status === "done" || entry.status === "archived" ? null : entry.reminderAt });
+  await syncEntityNotification("manual", userId, entry.id, { title: entry.title, body: "", targetUrl: `/entries/${entry.id}`, scheduledFor: entry.status === "done" || entry.status === "archived" ? null : entry.reminderAt });
 
   // Sync tags only if tags field was explicitly provided
   if (data.tags !== undefined) {
