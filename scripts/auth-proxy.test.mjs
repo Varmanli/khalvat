@@ -43,4 +43,6 @@ test("valid sessions retain protected access and guest-page redirect", () => {
   assert.equal(proxy(request("/today", token)).headers.get("location"), null);
   assert.equal(proxy(request("/login", token)).headers.get("location"), "http://localhost:3000/today");
   assert.equal(proxy(request("/register", token)).headers.get("location"), "http://localhost:3000/today");
+  assert.equal(proxy(request("/", token)).headers.get("location"), "http://localhost:3000/dashboard");
+  assert.equal(proxy(request("/")).headers.get("location"), null);
 });

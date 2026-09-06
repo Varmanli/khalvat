@@ -32,6 +32,11 @@ export function proxy(request: NextRequest) {
   if (isGuestOnly && session) {
     return NextResponse.redirect(new URL("/today", request.url));
   }
+  // Installed PWAs commonly launch at `/`. Redirect here as well as in the
+  // server page so an authenticated launch never depends on a hydrated UI.
+  if (pathname === "/" && session) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
   const response = NextResponse.next();
   if (token && !session) response.cookies.set(clearAuthCookie());
   return response;
@@ -39,6 +44,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/today/:path*", "/planner/:path*", "/calendar/:path*", "/events/:path*",
     "/dashboard/:path*",
     "/entries/:path*",

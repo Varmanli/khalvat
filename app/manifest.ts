@@ -8,7 +8,9 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "فضایی آرام برای عادت‌ها، نوشته‌ها، وظایف و حال روزانه",
     lang: "fa",
     dir: "rtl",
-    start_url: "/",
+    // Launch the private workspace directly. Unauthenticated launches are
+    // safely redirected to login by the proxy.
+    start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
