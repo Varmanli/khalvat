@@ -2,9 +2,21 @@ export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
+const APP_TIME_ZONE = "Asia/Tehran";
+
+function tehranDateKey(value: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(value);
+}
+
 export function formatPersianDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: APP_TIME_ZONE,
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -14,6 +26,7 @@ export function formatPersianDate(date: Date | string): string {
 export function formatPersianDateTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: APP_TIME_ZONE,
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -25,36 +38,27 @@ export function formatPersianDateTime(date: Date | string): string {
 export function formatPersianTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: APP_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
   }).format(d);
 }
 
-/** Returns midnight of a given date (start of day). */
-function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export function isToday(date: Date): boolean {
-  const now = new Date();
-  return startOfDay(date).getTime() === startOfDay(now).getTime();
+  return tehranDateKey(date) === tehranDateKey(new Date());
 }
 
 export function isTomorrow(date: Date): boolean {
-  const tomorrow = new Date();
+  const tomorrow = new Date(`${tehranDateKey(new Date())}T12:00:00+03:30`);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  return startOfDay(date).getTime() === startOfDay(tomorrow).getTime();
+  return tehranDateKey(date) === tehranDateKey(tomorrow);
 }
 
 export function isThisWeek(date: Date): boolean {
-  const now = new Date();
-  const dayOfWeek = now.getDay(); // 0 = Sunday
-  // End of week = 7 days from start of today
-  const endOfWeek = new Date(startOfDay(now));
+  const start = new Date(`${tehranDateKey(new Date())}T00:00:00+03:30`);
+  const endOfWeek = new Date(start);
   endOfWeek.setDate(endOfWeek.getDate() + 7);
-  return date >= startOfDay(now) && date < endOfWeek;
+  return date >= start && date < endOfWeek;
 }
 
 export function isPast(date: Date): boolean {

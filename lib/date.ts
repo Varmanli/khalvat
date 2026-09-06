@@ -6,6 +6,25 @@ const JALALI_MONTHS = [
   "فروردین","اردیبهشت","خرداد","تیر","مرداد","شهریور",
   "مهر","آبان","آذر","دی","بهمن","اسفند",
 ];
+const APP_TIME_ZONE = "Asia/Tehran";
+
+function tehranGregorianDate(value: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(value);
+}
+
+function tehranTime(value: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: APP_TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(value);
+}
 
 export function jalaliMonthName(jm: number): string {
   return JALALI_MONTHS[jm - 1] ?? "";
@@ -51,7 +70,8 @@ export function getJalaliParts(dateOrIso: Date | string): JalaliParts {
     return { jy, jm, jd };
   }
   const d = typeof dateOrIso === "string" ? new Date(dateOrIso) : dateOrIso;
-  const { jy, jm, jd } = toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+  const [gy, gm, gd] = tehranGregorianDate(d).split("-").map(Number);
+  const { jy, jm, jd } = toJalaali(gy, gm, gd);
   return { jy, jm, jd };
 }
 
@@ -137,7 +157,7 @@ export function parseDateValue(value?: string | null): Date | null {
 
 export function formatJalaliDate(value: string | Date): string {
   const { jy, jm, jd } = getJalaliParts(
-    typeof value === "string" ? value : toGregorianIso(value)
+    typeof value === "string" ? value : tehranGregorianDate(value)
   );
   return toPersianDigits(
     `${jy}/${String(jm).padStart(2, "0")}/${String(jd).padStart(2, "0")}`
@@ -148,9 +168,7 @@ export function formatJalaliDateTime(value: string | Date): string {
   const d = typeof value === "string" ? new Date(value) : value;
   if (isNaN(d.getTime())) return "";
   const datePart = formatJalaliDate(d);
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  return `${datePart}  ${toPersianDigits(`${h}:${m}`)}`;
+  return `${datePart}  ${toPersianDigits(tehranTime(d))}`;
 }
 
 export function toISODateTime(date: Date): string {
@@ -159,28 +177,21 @@ export function toISODateTime(date: Date): string {
 
 // ── Time/reminder helpers (unchanged) ────────────────────────────
 
-function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export function isToday(date: Date): boolean {
-  const now = new Date();
-  return startOfDay(date).getTime() === startOfDay(now).getTime();
+  return tehranGregorianDate(date) === tehranGregorianDate(new Date());
 }
 
 export function isTomorrow(date: Date): boolean {
-  const tomorrow = new Date();
+  const tomorrow = new Date(`${tehranGregorianDate(new Date())}T12:00:00+03:30`);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  return startOfDay(date).getTime() === startOfDay(tomorrow).getTime();
+  return tehranGregorianDate(date) === tehranGregorianDate(tomorrow);
 }
 
 export function isThisWeek(date: Date): boolean {
-  const now = new Date();
-  const endOfWeek = new Date(startOfDay(now));
-  endOfWeek.setDate(endOfWeek.getDate() + 7);
-  return date >= startOfDay(now) && date < endOfWeek;
+  const start = new Date(`${tehranGregorianDate(new Date())}T00:00:00+03:30`);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+  return date >= start && date < end;
 }
 
 export function isPast(date: Date): boolean {
@@ -240,6 +251,7 @@ export function groupReminders<T extends { reminderAt: Date | null }>(
 export function formatPersianDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: APP_TIME_ZONE,
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -249,6 +261,7 @@ export function formatPersianDate(date: Date | string): string {
 export function formatPersianDateTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: APP_TIME_ZONE,
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -260,6 +273,7 @@ export function formatPersianDateTime(date: Date | string): string {
 export function formatPersianTime(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("fa-IR", {
+    timeZone: APP_TIME_ZONE,
     hour: "2-digit",
     minute: "2-digit",
   }).format(d);
