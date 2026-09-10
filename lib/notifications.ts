@@ -15,7 +15,8 @@ export function localDateTimeToUtc(date: string, time: string, timezone: string)
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(stamp));
     const value = (type: string) => parts.find(p => p.type === type)?.value ?? "00";
     const observed = Date.parse(`${value("year")}-${value("month")}-${value("day")}T${value("hour")}:${value("minute")}:00Z`);
-    stamp += Date.parse(`${date}T${time}:00:00Z`) - observed;
+    if (!Number.isFinite(observed)) throw new Error("Invalid local notification time");
+    stamp += Date.parse(`${date}T${time}:00Z`) - observed;
   }
   return new Date(stamp);
 }

@@ -116,8 +116,8 @@ export function HabitForm({ habit, categories = [], goals = [], initialGoalId = 
     defaultValues: {
       title: habit?.title ?? "",
       shortDescription: habit?.shortDescription ?? "",
-      categoryId: habit?.categoryId ?? "",
-      goalId: habit?.goalId ?? initialGoalId ?? "",
+      categoryId: habit?.categoryId ?? null,
+      goalId: habit?.goalId ?? initialGoalId ?? null,
       color: habit?.color ?? "#8A5A44",
       icon: habit?.icon ?? "star",
       dailyGoal: habit?.dailyGoal ?? undefined,
@@ -410,7 +410,7 @@ export function HabitForm({ habit, categories = [], goals = [], initialGoalId = 
                       <CustomSelect
                         label="دسته‌بندی"
                         value={field.value ?? ""}
-                        onValueChange={(val) => field.onChange(val || "")}
+                        onValueChange={(val) => field.onChange(val || null)}
                         options={categoryOptions}
                         placeholder="بدون دسته‌بندی"
                         error={errors.categoryId?.message}

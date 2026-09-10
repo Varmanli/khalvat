@@ -3,10 +3,18 @@ import { db } from "@/db";
 import { goalActivities, goalMilestones, goalReviews, goals, habitLogs, habits, tasks, type Goal } from "@/db/schema";
 import type { GoalInput } from "@/lib/validations";
 import { calculateGoalProgress, expectedProgress, goalHealth } from "@/lib/goal-progress";
+import { isHabitScheduledForDate, parseDateString, toDateString } from "@/lib/habit-utils";
 
 export type GoalWithSummary = Goal & { milestones: number; completedMilestones: number; linkedTasks: number; completedTasks: number; calculatedProgress: number; expectedProgress: number | null; health: ReturnType<typeof goalHealth> };
 
 async function log(userId: string, goalId: string, type: string, detail?: string) { await db.insert(goalActivities).values({ userId, goalId, type, detail: detail ?? null }); }
+function habitProgressWindow(goal: Goal, habit: typeof habits.$inferSelect) {
+  const start = goal.startDate && goal.startDate > habit.startDate ? goal.startDate : habit.startDate;
+  const today = toDateString(new Date());
+  const goalEnd = goal.targetDate ?? today;
+  const end = habit.endDate && habit.endDate < goalEnd ? habit.endDate : goalEnd;
+  return { start, end };
+}
 export async function getUserGoals(userId: string): Promise<GoalWithSummary[]> {
   const rows = await db.select().from(goals).where(eq(goals.userId, userId)).orderBy(asc(goals.targetDate), desc(goals.createdAt));
   return Promise.all(rows.map((goal) => summarize(userId, goal)));
@@ -20,7 +28,16 @@ async function summarize(userId: string, goal: Goal): Promise<GoalWithSummary> {
   let completed = 0, total = 0;
   if (goal.progressMethod === "milestones") { total = milestones.length; completed = milestones.filter(m => m.status === "completed").length; }
   if (goal.progressMethod === "tasks") { total = linkedTasks.length; completed = linkedTasks.filter(t => t.status === "done").length; }
-  if (goal.progressMethod === "habits") { total = linkedHabits.length; completed = 0; if (linkedHabits.length) { const logs = await db.select().from(habitLogs).where(and(eq(habitLogs.userId, userId), inArray(habitLogs.habitId, linkedHabits.map(h => h.id)))); completed = logs.filter(l => l.status === "done").length; total = Math.max(total, completed || total); } }
+  if (goal.progressMethod === "habits" && linkedHabits.length) {
+    const logs = await db.select().from(habitLogs).where(and(eq(habitLogs.userId, userId), inArray(habitLogs.habitId, linkedHabits.map(h => h.id))));
+    for (const habit of linkedHabits) {
+      const { start, end } = habitProgressWindow(goal, habit);
+      for (let date = parseDateString(start); toDateString(date) <= end; date.setDate(date.getDate() + 1)) {
+        if (isHabitScheduledForDate(habit, date)) total++;
+      }
+      completed += logs.filter((log) => log.habitId === habit.id && log.status === "done" && log.date >= start && log.date <= end).length;
+    }
+  }
   const calculatedProgress = calculateGoalProgress({ method: goal.progressMethod, manual: goal.progress, completed, total, current: goal.currentValue, target: goal.targetValue });
   const expected = expectedProgress(goal.startDate, goal.targetDate);
   return { ...goal, milestones: milestones.length, completedMilestones: milestones.filter(m => m.status === "completed").length, linkedTasks: linkedTasks.length, completedTasks: linkedTasks.filter(t => t.status === "done").length, calculatedProgress, expectedProgress: expected, health: goalHealth(calculatedProgress, expected, goal.status === "completed") };

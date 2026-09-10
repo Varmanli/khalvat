@@ -322,7 +322,11 @@ export async function updateHabit(
 
   const startDate = data.startDate ?? existing.startDate;
   const durationDays = data.durationDays !== undefined ? data.durationDays : existing.durationDays;
-  const endDate = computeEndDate(startDate, durationDays ?? null, data.endDate ?? existing.endDate);
+  const endDate = computeEndDate(
+    startDate,
+    durationDays ?? null,
+    data.endDate !== undefined ? data.endDate : existing.endDate,
+  );
 
   const rows = await db
     .update(habits)

@@ -174,15 +174,20 @@ export type DailyJournalInput = z.infer<typeof dailyJournalSchema>;
 
 // ── Habit schemas ─────────────────────────────────────────────
 
-export const habitSchema = z
-  .object({
+const habitFields = z.object({
     title: z
       .string()
       .min(1, "عنوان الزامی است")
       .max(120, "عنوان نمی‌تواند بیشتر از ۱۲۰ کاراکتر باشد"),
     shortDescription: z.string().max(280, "توضیح نمی‌تواند بیشتر از ۲۸۰ کاراکتر باشد").optional().nullable(),
-    categoryId: z.string().uuid().optional().nullable(),
-    goalId: z.string().uuid().optional().nullable(),
+    categoryId: z.preprocess(
+      (value) => (value === "" ? null : value),
+      z.string().uuid().optional().nullable(),
+    ),
+    goalId: z.preprocess(
+      (value) => (value === "" ? null : value),
+      z.string().uuid().optional().nullable(),
+    ),
     color: z.string().optional().nullable(),
     icon: z.string().optional().nullable(),
     dailyGoal: z.coerce.number().positive("هدف روزانه باید عدد مثبت باشد").optional().nullable(),
@@ -199,8 +204,9 @@ export const habitSchema = z
     durationDays: z.coerce.number().int().positive("مدت زمان باید عدد مثبت باشد").optional().nullable(),
     startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ معتبر نیست"),
     endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ معتبر نیست").optional().nullable(),
-  })
-  .superRefine((data, ctx) => {
+});
+
+function validateHabitRepeat(data: { repeatType?: "daily" | "weekly"; weeklyDays?: number[] }, ctx: z.RefinementCtx) {
     if (data.repeatType === "weekly" && (!data.weeklyDays || data.weeklyDays.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -208,7 +214,10 @@ export const habitSchema = z
         path: ["weeklyDays"],
       });
     }
-  });
+}
+
+export const habitSchema = habitFields.superRefine(validateHabitRepeat);
+export const habitUpdateSchema = habitFields.partial().superRefine(validateHabitRepeat);
 
 export const habitLogSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ معتبر نیست"),
